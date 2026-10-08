@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
-import { Shield, Lock, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Shield, Lock, Mail, ArrowLeft, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function AdminLoginPage() {
 
   const [email, setEmail] = useState("admin@kavvustyle.com");
   const [password, setPassword] = useState("admin123");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,15 +63,23 @@ export default function AdminLoginPage() {
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-muted mb-1">
               Password
             </label>
-            <div className="flex items-center border border-ivory-300 rounded bg-ivory-50 p-2.5 focus-within:border-gold">
-              <Lock className="w-4 h-4 text-gold mr-2" />
+            <div className="relative flex items-center border border-ivory-300 rounded bg-ivory-50 p-2.5 focus-within:border-gold">
+              <Lock className="w-4 h-4 text-gold mr-2 flex-shrink-0" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent text-xs text-ink outline-none"
+                className="w-full bg-transparent text-xs text-ink outline-none pr-8"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 text-ink-muted hover:text-gold p-1 transition-colors cursor-pointer"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
