@@ -72,35 +72,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  const showSplash =
-    pageLoading ||
-    (isLoading && typeof window !== "undefined" && !sessionStorage.getItem("ks_splash_shown"));
 
-  if (showSplash) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[#2B0B14] flex flex-col items-center justify-center text-ivory space-y-6">
-        <div className="relative w-24 h-24 rounded-full border-2 border-gold p-1.5 animate-pulse shadow-2xl bg-[#2B0B14]">
-          <div className="relative w-full h-full rounded-full overflow-hidden">
-            <Image src="/icon.jpeg" alt="Kaavu Styles Emblem" fill className="object-cover" priority />
-          </div>
-        </div>
-        <div className="text-center space-y-1.5 px-4">
-          <h1 className="font-serif text-3xl sm:text-4xl uppercase tracking-[0.25em] text-[#E5C378] font-light">
-            KAAVU STYLES
-          </h1>
-          <p className="text-xs uppercase tracking-[0.3em] text-ivory-300 font-sans font-medium">
-            For Every Version Of You
-          </p>
-        </div>
-        <div className="w-48 h-1 bg-ivory/10 rounded-full overflow-hidden relative border border-gold/30">
-          <div className="absolute inset-y-0 bg-gold animate-marquee w-full" />
-        </div>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-gold/80 font-sans font-semibold pt-2">
-          Loading Exclusive Ensembles...
-        </span>
-      </div>
-    );
-  }
 
   // 10 Latest Products for Horizontal Slider
   const latestTenProducts = products.filter((p) => p.isLatest || p.isFeatured).slice(0, 10);
@@ -149,7 +121,31 @@ export default function HomePage() {
   };
 
   return (
-    <HomeMotion>
+    <>
+      {pageLoading && (
+        <div className="fixed inset-0 z-50 bg-[#2B0B14] flex flex-col items-center justify-center text-ivory space-y-6">
+          <div className="relative w-24 h-24 rounded-full border-2 border-gold p-1.5 animate-pulse shadow-2xl bg-[#2B0B14]">
+            <div className="relative w-full h-full rounded-full overflow-hidden">
+              <Image src="/icon.jpeg" alt="Kaavu Styles Emblem" fill className="object-cover" priority />
+            </div>
+          </div>
+          <div className="text-center space-y-1.5 px-4">
+            <h1 className="font-serif text-3xl sm:text-4xl uppercase tracking-[0.25em] text-[#E5C378] font-light">
+              KAAVU STYLES
+            </h1>
+            <p className="text-xs uppercase tracking-[0.3em] text-ivory-300 font-sans font-medium">
+              For Every Version Of You
+            </p>
+          </div>
+          <div className="w-48 h-1 bg-ivory/10 rounded-full overflow-hidden relative border border-gold/30">
+            <div className="absolute inset-y-0 bg-gold animate-marquee w-full" />
+          </div>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-gold/80 font-sans font-semibold pt-2">
+            Loading Exclusive Ensembles...
+          </span>
+        </div>
+      )}
+      <HomeMotion>
       {/* 1. HERO BANNER SLIDER WITH PARALLAX MOTION */}
       <HeroBanner />
 
@@ -521,5 +517,6 @@ export default function HomePage() {
         )}
       </section>
     </HomeMotion>
+    </>
   );
 }
