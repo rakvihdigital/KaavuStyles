@@ -22,15 +22,22 @@ import {
 export default function HomePage() {
   const { products, categories, instagramPosts, lifestyleTags, isLoading } = useStore();
   const [activeTag, setActiveTag] = useState("all");
-  const [pageLoading, setPageLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const lifestyleSliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPageLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    if (typeof window !== "undefined") {
+      const hasShown = sessionStorage.getItem("ks_splash_shown");
+      if (!hasShown) {
+        setPageLoading(true);
+        const timer = setTimeout(() => {
+          setPageLoading(false);
+          sessionStorage.setItem("ks_splash_shown", "true");
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
   }, []);
 
   // 4-second Auto-scrolling for Latest Products Slider
@@ -65,7 +72,11 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  if (pageLoading || isLoading) {
+  const showSplash =
+    pageLoading ||
+    (isLoading && typeof window !== "undefined" && !sessionStorage.getItem("ks_splash_shown"));
+
+  if (showSplash) {
     return (
       <div className="fixed inset-0 z-50 bg-[#2B0B14] flex flex-col items-center justify-center text-ivory space-y-6">
         <div className="relative w-24 h-24 rounded-full border-2 border-gold p-1.5 animate-pulse shadow-2xl bg-[#2B0B14]">
