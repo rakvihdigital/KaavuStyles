@@ -44,6 +44,16 @@ export interface CartItem {
   selectedColor: string;
 }
 
+export interface ToastMessage {
+  id: string;
+  type: "cart" | "wishlist" | "info";
+  title: string;
+  message: string;
+  actionText?: string;
+  onAction?: () => void;
+  imageUrl?: string;
+}
+
 interface StoreContextType {
   products: Product[];
   categories: Category[];
@@ -62,6 +72,9 @@ interface StoreContextType {
   isCartDrawerOpen: boolean;
   ipAddress: string;
   isLoading: boolean;
+  toastMessage: ToastMessage | null;
+  showToast: (toast: Omit<ToastMessage, "id">) => void;
+  hideToast: () => void;
 
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
@@ -203,6 +216,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [ipAddress, setIpAddress] = useState("127.0.0.1");
   const [isLoading, setIsLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
+
+  const showToast = (toastData: Omit<ToastMessage, "id">) => {
+    const id = "toast-" + Date.now();
+    setToastMessage({ id, ...toastData });
+  };
+
+  const hideToast = () => setToastMessage(null);
 
   // Load from Supabase Database (or fallback to LocalStorage/Seed)
   useEffect(() => {
@@ -402,7 +423,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    setIsCartDrawerOpen(true);
+    showToast({
+      type: "cart",
+      title: "Added to Shopping Bag ✨",
+      message: `${product.name} (${selectedSize})`,
+      actionText: "View Cart",
+      onAction: () => setIsCartDrawerOpen(true),
+      imageUrl: product.images[0],
+    });
   };
 
   const removeFromCart = (productId: string, size: string, color: string) => {
@@ -444,9 +472,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const getCartItemCount = () => cart.reduce((count, item) => count + item.quantity, 0);
 
   const toggleWishlist = (productId: string) => {
-    setWishlist((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
-    );
+    const product = products.find((p) => p.id === productId);
+    setWishlist((prev) => {
+      const isAlreadyIn = prev.includes(productId);
+      if (isAlreadyIn) {
+        if (product) {
+          showToast({
+            type: "wishlist",
+            title: "Removed from Wishlist",
+            message: `${product.name} removed from your wishlist.`,
+            imageUrl: product.images[0],
+          });
+        }
+        return prev.filter((id) => id !== productId);
+      } else {
+        if (product) {
+          showToast({
+            type: "wishlist",
+            title: "Saved to Wishlist ❤️",
+            message: `${product.name} saved to your luxury wishlist.`,
+            actionText: "View Wishlist",
+            onAction: () => {
+              if (typeof window !== "undefined") window.location.href = "/wishlist";
+            },
+            imageUrl: product.images[0],
+          });
+        }
+        return [...prev, productId];
+      }
+    });
   };
 
   const isInWishlist = (productId: string) => wishlist.includes(productId);
@@ -915,6 +969,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         isCartDrawerOpen,
         ipAddress,
         isLoading,
+        toastMessage,
+        showToast,
+        hideToast,
 
         applyCoupon,
         removeCoupon,

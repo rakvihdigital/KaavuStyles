@@ -175,7 +175,7 @@ export default function Footer() {
               rel="noreferrer"
               className="text-[#E5C378] font-bold hover:text-white transition-colors flex items-center space-x-1"
             >
-              <span>Developed by Rakvih</span>
+              <span>Designed And Developed by Rakvih</span>
               <ExternalLink className="w-3 h-3 ml-0.5" />
             </a>
           </div>

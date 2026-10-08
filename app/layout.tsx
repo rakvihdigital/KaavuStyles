@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
 import CartDrawer from "@/components/CartDrawer";
+import ToastNotification from "@/components/ToastNotification";
 
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
           <MobileBottomNav />
           <AuthModal />
           <CartDrawer />
+          <ToastNotification />
         </StoreProvider>
       </body>
     </html>
