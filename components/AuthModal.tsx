@@ -33,13 +33,7 @@ export default function AuthModal({ checkoutNotice = false }: { checkoutNotice?:
     }
   };
 
-  const handleDemoCustomer = () => {
-    login("demo.customer@kavvustyle.com", "customer");
-  };
 
-  const handleDemoAdmin = () => {
-    login("admin@kavvustyle.com", "admin");
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
@@ -217,30 +211,7 @@ export default function AuthModal({ checkoutNotice = false }: { checkoutNotice?:
             </form>
           </div>
 
-          {/* Quick One-Click Demo Login Options */}
-          <div className="pt-4 mt-4 border-t border-ivory-300">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-center text-ink-muted mb-2 font-semibold flex items-center justify-center space-x-1">
-              <Sparkles className="w-3 h-3 text-gold" />
-              <span>Instant Demo Logins</span>
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={handleDemoCustomer}
-                className="py-2 px-3 border border-gold text-gold hover:bg-gold hover:text-ivory text-[10px] uppercase tracking-wider transition-all font-bold text-center cursor-pointer"
-              >
-                Demo Customer
-              </button>
-              <button
-                type="button"
-                onClick={handleDemoAdmin}
-                className="py-2 px-3 border border-crimson text-crimson hover:bg-crimson hover:text-ivory text-[10px] uppercase tracking-wider transition-all font-bold text-center flex items-center justify-center space-x-1 cursor-pointer"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Demo Admin</span>
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
