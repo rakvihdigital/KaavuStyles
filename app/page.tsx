@@ -243,61 +243,82 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. OUR STORY NARRATIVE SECTION WITH LUXURY ARCH FRAME */}
-      <section className="w-full px-3 sm:px-6 lg:px-12 py-4 overflow-hidden">
-        <div className="bg-ivory-200 border-2 border-gold/40 p-4 sm:p-8 lg:p-12 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-center hover:shadow-luxury transition-shadow duration-500 relative overflow-hidden max-w-full rounded-sm">
-          {/* Background dot grid pattern */}
+      {/* 4. OUR STORY NARRATIVE SECTION */}
+      <section className="w-full px-4 sm:px-6 lg:px-12 py-6 sm:py-10">
+        <div className="bg-ivory border-2 border-gold/50 p-6 sm:p-10 lg:p-12 shadow-luxury rounded-sm relative overflow-hidden max-w-full">
+          {/* Subtle Royal Radial Pattern */}
           <div className="absolute inset-0 bg-[radial-gradient(#8F6E3A_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
 
-          {/* Left Arch Frame with Floating Motion & Pulse Glow */}
-          <div data-reveal="left" className="lg:col-span-5 flex flex-col items-center justify-center relative z-10 w-full max-w-full">
-            <div className="relative w-40 sm:w-full max-w-[200px] sm:max-w-xs aspect-[3/4] rounded-t-[999px] border-2 border-gold p-1.5 sm:p-2 bg-ivory shadow-2xl overflow-hidden group founder-motion mx-auto">
-              <div className="relative w-full h-full rounded-t-[990px] overflow-hidden">
-                <Image
-                  src="/founderphoto.jpg"
-                  alt="Kaavu Styles Founder & Drapery"
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
-                />
-              </div>
-            </div>
-            <span className="mt-2.5 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-gold font-bold bg-ivory px-3 sm:px-4 py-1 border border-gold/40 shadow-sm text-center max-w-full truncate">
-              Kaavu Styles Founder & Drapery
-            </span>
-          </div>
-
-          {/* Right Text Content */}
-          <div data-reveal="right" className="lg:col-span-7 space-y-3.5 sm:space-y-5 text-ink relative z-10 text-center lg:text-left w-full max-w-full break-words">
-            <div className="space-y-1.5 sm:space-y-2 max-w-full">
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-gold font-bold flex items-center justify-center lg:justify-start space-x-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+            {/* Mobile Header (Shows on mobile before image for optimal narrative flow) */}
+            <div className="lg:hidden text-center space-y-3">
+              <span className="inline-flex items-center justify-center px-3.5 py-1 bg-ivory-200 border border-gold/40 text-[10px] uppercase tracking-[0.3em] text-gold font-bold rounded-full">
+                <Sparkles className="w-3.5 h-3.5 text-gold mr-1.5" />
                 <span>Our Story Narrative</span>
               </span>
-              <h2 className="font-serif text-xl sm:text-4xl lg:text-5xl uppercase font-light leading-tight text-ink break-words">
-                Made for every <br className="hidden sm:inline" />
+              <h2 className="font-serif text-3xl sm:text-4xl uppercase font-light leading-tight text-ink">
+                Made for every <br />
                 <em className="text-crimson font-normal italic">version of you.</em>
               </h2>
-              <div className="w-16 sm:w-24 h-0.5 bg-gold my-2 mx-auto lg:mx-0" />
+              <div className="w-16 h-0.5 bg-gold mx-auto" />
             </div>
 
-            <p className="text-xs sm:text-base text-ink font-normal leading-relaxed font-sans max-w-full break-words">
-              Kaavu Styles began with a simple idea: getting dressed should feel like a quiet ritual, not a decision. Each piece is chosen for its fall, its finish, and the way it makes you feel.
-            </p>
+            {/* Arch Photo Frame (Centered on Mobile, Left Column on Desktop) */}
+            <div data-reveal="left" className="lg:col-span-5 flex flex-col items-center justify-center w-full">
+              <div className="relative w-48 sm:w-64 lg:w-full max-w-[260px] aspect-[3/4] rounded-t-[999px] border-2 border-gold p-2 bg-[#2B0B14] shadow-2xl overflow-hidden group hover:border-gold-dark transition-colors">
+                <div className="relative w-full h-full rounded-t-[990px] overflow-hidden">
+                  <Image
+                    src="/image.jpg"
+                    alt="Kaavu Styles Atelier & Founder"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#2B0B14]/60 via-transparent to-transparent opacity-40" />
+                </div>
+              </div>
+              <span className="mt-3 text-[10px] uppercase tracking-[0.2em] text-gold font-bold bg-[#2B0B14] text-[#E5C378] px-4 py-1.5 border border-gold/50 rounded-full shadow-md text-center max-w-full">
+                Kaavu Styles Atelier & Drapery
+              </span>
+            </div>
 
-            <div className="bg-ivory/80 border-l-2 border-gold p-3 sm:p-4 text-left my-2 max-w-full rounded-r overflow-hidden">
-              <p className="text-xs sm:text-sm text-burgundy font-serif italic font-medium leading-normal break-words">
-                &ldquo;Rich maroon, soft gold, unhurried silhouettes. Clothing and adornment that belongs to every mood, every day.&rdquo;
+            {/* Text Content (Right Column on Desktop, Body on Mobile) */}
+            <div data-reveal="right" className="lg:col-span-7 space-y-5 text-ink text-center lg:text-left w-full break-words">
+              {/* Desktop Header */}
+              <div className="hidden lg:block space-y-2">
+                <span className="text-xs uppercase tracking-[0.3em] text-gold font-bold flex items-center space-x-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0" />
+                  <span>Our Story Narrative</span>
+                </span>
+                <h2 className="font-serif text-4xl lg:text-5xl uppercase font-light leading-tight text-ink">
+                  Made for every <br />
+                  <em className="text-crimson font-normal italic">version of you.</em>
+                </h2>
+                <div className="w-24 h-0.5 bg-gold my-2" />
+              </div>
+
+              <p className="text-sm sm:text-base text-ink-muted font-normal leading-relaxed font-sans">
+                Kaavu Styles began with a simple idea: getting dressed should feel like a quiet ritual, not a decision. Each piece is chosen for its fall, its finish, and the way it makes you feel.
               </p>
-            </div>
 
-            <div className="pt-1 sm:pt-2 flex justify-center lg:justify-start max-w-full">
-              <Link
-                href="/story"
-                className="inline-flex items-center space-x-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-bold transition-all shadow-md hover:scale-105 cursor-pointer border border-gold/40"
-              >
-                <span>Read Full Story</span>
-                <ChevronRight className="w-4 h-4 flex-shrink-0" />
-              </Link>
+              {/* Luxury Velvet Burgundy Quote Card */}
+              <div className="bg-[#2B0B14] border-l-4 border-gold p-4 sm:p-5 text-left rounded-r shadow-md my-4">
+                <p className="text-xs sm:text-sm text-[#E5C378] font-serif italic font-medium leading-relaxed">
+                  &ldquo;Rich maroon, soft gold, unhurried silhouettes. Clothing and adornment that belongs to every mood, every day.&rdquo;
+                </p>
+                <span className="text-[9px] uppercase tracking-[0.2em] text-ivory-300 block pt-2 font-sans">
+                  — The Kaavu Ethos
+                </span>
+              </div>
+
+              <div className="pt-2 flex justify-center lg:justify-start">
+                <Link
+                  href="/story"
+                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-8 py-3.5 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-bold transition-all shadow-md hover:scale-105 cursor-pointer border border-gold/40 rounded-none"
+                >
+                  <span>Read Full Story</span>
+                  <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
