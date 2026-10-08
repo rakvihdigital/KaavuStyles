@@ -20,10 +20,76 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const { products, categories, instagramPosts, lifestyleTags } = useStore();
+  const { products, categories, instagramPosts, lifestyleTags, isLoading } = useStore();
   const [activeTag, setActiveTag] = useState("all");
+  const [pageLoading, setPageLoading] = useState(true);
   const sliderRef = useRef<HTMLDivElement>(null);
   const lifestyleSliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 4-second Auto-scrolling for Latest Products Slider
+  useEffect(() => {
+    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = setInterval(() => {
+      if (sliderRef.current) {
+        const container = sliderRef.current;
+        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 15) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 360, behavior: "smooth" });
+        }
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 4-second Auto-scrolling for Shop By Lifestyle Slider
+  useEffect(() => {
+    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = setInterval(() => {
+      if (lifestyleSliderRef.current) {
+        const container = lifestyleSliderRef.current;
+        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 15) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 360, behavior: "smooth" });
+        }
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (pageLoading || isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#2B0B14] flex flex-col items-center justify-center text-ivory space-y-6">
+        <div className="relative w-24 h-24 rounded-full border-2 border-gold p-1.5 animate-pulse shadow-2xl bg-[#2B0B14]">
+          <div className="relative w-full h-full rounded-full overflow-hidden">
+            <Image src="/icon.jpeg" alt="Kaavu Styles Emblem" fill className="object-cover" priority />
+          </div>
+        </div>
+        <div className="text-center space-y-1.5 px-4">
+          <h1 className="font-serif text-3xl sm:text-4xl uppercase tracking-[0.25em] text-[#E5C378] font-light">
+            KAAVU STYLES
+          </h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-ivory-300 font-sans font-medium">
+            For Every Version Of You
+          </p>
+        </div>
+        <div className="w-48 h-1 bg-ivory/10 rounded-full overflow-hidden relative border border-gold/30">
+          <div className="absolute inset-y-0 bg-gold animate-marquee w-full" />
+        </div>
+        <span className="text-[10px] uppercase tracking-[0.2em] text-gold/80 font-sans font-semibold pt-2">
+          Loading Exclusive Ensembles...
+        </span>
+      </div>
+    );
+  }
 
   // 10 Latest Products for Horizontal Slider
   const latestTenProducts = products.filter((p) => p.isLatest || p.isFeatured).slice(0, 10);
@@ -70,38 +136,6 @@ export default function HomePage() {
       }
     }
   };
-
-  // 4-second Auto-scrolling for Latest Products Slider
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => {
-      if (sliderRef.current) {
-        const container = sliderRef.current;
-        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 15) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: 360, behavior: "smooth" });
-        }
-      }
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // 4-second Auto-scrolling for Shop By Lifestyle Slider
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => {
-      if (lifestyleSliderRef.current) {
-        const container = lifestyleSliderRef.current;
-        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 15) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: 360, behavior: "smooth" });
-        }
-      }
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <HomeMotion>
