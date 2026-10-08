@@ -19,7 +19,7 @@ export default function Footer() {
   const instagramLink = "https://www.instagram.com/kaavu_styles?stkn=MWR6eWVtamh2cGZyag==";
 
   return (
-    <footer className="bg-[#2B0B14] text-ivory border-t-2 border-gold/40 pt-16 pb-12 shadow-2xl">
+    <footer className="bg-[#2B0B14] text-ivory border-t-2 border-gold/40 pt-16 pb-24 sm:pb-28 lg:pb-12 shadow-2xl">
       <div className="w-full px-4 sm:px-6 lg:px-12 space-y-12">
         {/* MAIN 4-COLUMN FOOTER GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-14 border-b border-gold/30">
