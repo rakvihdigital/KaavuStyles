@@ -48,6 +48,21 @@ export default function HeroBanner() {
   }
 
   const banner = activeBanners[currentIdx];
+  const textAlign = banner.textAlign?.toLowerCase() || "left";
+
+  const desktopAlignClass =
+    textAlign === "right"
+      ? "lg:items-end lg:text-right lg:ml-auto lg:mr-0"
+      : textAlign === "center"
+      ? "lg:items-center lg:text-center lg:mx-auto"
+      : "lg:items-start lg:text-left lg:mx-0";
+
+  const desktopCtaAlignClass =
+    textAlign === "right"
+      ? "lg:justify-end"
+      : textAlign === "center"
+      ? "lg:justify-center"
+      : "lg:justify-start";
 
   const handlePrev = () => {
     setCurrentIdx((prev) => (prev === 0 ? activeBanners.length - 1 : prev - 1));
@@ -70,13 +85,13 @@ export default function HeroBanner() {
           quality={85}
           className="object-cover object-center opacity-75 scale-105 transform transition-transform duration-[8000ms]"
         />
-        {/* Dark Vignette Overlay for High Contrast Visibility */}
+        {/* Dark Vignette & Gradient Overlay for Contrast */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
       </div>
 
-      {/* Hero Content Overlay (Positioned Down in Center) */}
-      <div className="relative max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 sm:pb-20 md:pb-24 items-center text-center text-ivory">
-        <div key={banner.id} className="hero-entrance max-w-2xl space-y-6 mx-auto text-center flex flex-col items-center">
+      {/* Hero Content Overlay (Centered on Mobile, Respects text_align on Desktop) */}
+      <div className={`relative max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-12 flex flex-col justify-end pb-16 sm:pb-20 md:pb-24 items-center text-center text-ivory ${desktopAlignClass}`}>
+        <div key={banner.id} className={`hero-entrance max-w-2xl space-y-6 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
           <p className="font-sans text-xs sm:text-sm uppercase tracking-[0.35em] text-[#E5C378] font-bold drop-shadow-md">
             {banner.subtitle || "KAAVU STYLES EXCLUSIVE"}
           </p>
@@ -92,7 +107,7 @@ export default function HeroBanner() {
             ))}
           </h1>
 
-          <div className="pt-4 flex items-center justify-center space-x-6">
+          <div className={`pt-4 flex items-center justify-center space-x-6 w-full ${desktopCtaAlignClass}`}>
             <Link
               href={banner.ctaLink || "/shop"}
               className="px-8 py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury hover:scale-105"
