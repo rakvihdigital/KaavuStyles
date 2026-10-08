@@ -26,11 +26,11 @@ export default function AuthModal({ checkoutNotice = false }: { checkoutNotice?:
     if (tab === "register") {
       setSuccessMsg("Account created successfully! Logging you in...");
       setTimeout(() => {
-        login(email, "customer");
+        login(email, "customer", name);
         setSuccessMsg("");
       }, 1000);
     } else {
-      login(email, email.includes("admin") ? "admin" : "customer");
+      login(email, "customer");
     }
   };
 

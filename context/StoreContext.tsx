@@ -84,7 +84,7 @@ interface StoreContextType {
   closeAuthModal: () => void;
   openCartDrawer: () => void;
   closeCartDrawer: () => void;
-  login: (email: string, role?: "admin" | "customer") => boolean;
+  login: (email: string, role?: "admin" | "customer", userName?: string) => boolean;
   logout: () => void;
 
   addToCart: (product: Product, size?: string, color?: string, qty?: number) => void;
@@ -376,11 +376,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const openCartDrawer = () => setIsCartDrawerOpen(true);
   const closeCartDrawer = () => setIsCartDrawerOpen(false);
 
-  const login = (email: string, role: "admin" | "customer" = "customer") => {
-    const isAdmin = email.toLowerCase().includes("admin") || role === "admin";
+  const login = (email: string, role: "admin" | "customer" = "customer", userName?: string) => {
+    const isAdmin = role === "admin";
+    const displayName = userName?.trim()
+      ? userName.trim()
+      : isAdmin
+      ? "Admin User"
+      : email.split("@")[0];
+
     const user: User = {
       id: "usr-" + Date.now(),
-      name: isAdmin ? "Admin User" : email.split("@")[0],
+      name: displayName,
       email,
       role: isAdmin ? "admin" : "customer",
     };

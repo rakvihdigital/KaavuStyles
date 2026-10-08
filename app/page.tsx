@@ -151,19 +151,19 @@ export default function HomePage() {
 
       {/* 2. CATEGORIES SECTION (EXPLORE OUR ETHNIC WEAR COLLECTION) */}
       <section className="w-full px-4 sm:px-6 lg:px-12 space-y-6 pt-4">
-        <div data-reveal="up" className="flex flex-col md:flex-row md:items-end justify-between border-b border-ivory-300 pb-3 gap-2">
-          <div>
-            <span className="text-xs uppercase tracking-[0.3em] text-gold font-bold flex items-center space-x-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
+        <div data-reveal="up" className="flex flex-col md:flex-row md:items-end justify-between border-b border-ivory-300 pb-3 gap-2 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-xs uppercase tracking-[0.3em] text-gold font-bold flex items-center justify-center md:justify-start space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0" />
               <span>Curated Heritage</span>
             </span>
-            <h2 className="font-serif text-2xl sm:text-4xl uppercase font-light text-ink">
+            <h2 className="font-serif text-2xl sm:text-4xl uppercase font-light text-ink text-center md:text-left">
               Explore Our <span className="text-crimson font-normal italic">Ethnic Wear Collection</span>
             </h2>
           </div>
           <Link
             href="/catory"
-            className="mt-2 md:mt-0 text-xs uppercase tracking-[0.24em] text-crimson font-bold hover:text-gold transition-colors flex items-center space-x-1 group"
+            className="mt-2 md:mt-0 text-xs uppercase tracking-[0.24em] text-crimson font-bold hover:text-gold transition-colors flex items-center justify-center md:justify-start space-x-1 group"
           >
             <span>View All Categories</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
@@ -326,8 +326,8 @@ export default function HomePage() {
 
       {/* 5. LATEST PRODUCTS ADDED (HORIZONTAL SCROLL SLIDER) */}
       <section className="w-full px-4 sm:px-6 lg:px-12 space-y-6">
-        <div data-reveal="up" className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-ivory-300 pb-3 gap-4">
-          <div>
+        <div data-reveal="up" className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-ivory-300 pb-3 gap-4 text-center sm:text-left">
+          <div className="flex flex-col items-center sm:items-start">
             <span className="text-xs uppercase tracking-[0.3em] text-gold font-bold">
               Fresh From Our Atelier
             </span>
@@ -337,7 +337,7 @@ export default function HomePage() {
           </div>
 
           {/* Slider Arrows & View All */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center sm:justify-end space-x-3">
             <button
               onClick={scrollLeft}
               className="p-2.5 border border-gold/50 bg-ivory text-gold hover:bg-crimson hover:text-ivory hover:border-crimson transition-colors rounded-full shadow-sm cursor-pointer"
@@ -381,8 +381,8 @@ export default function HomePage() {
 
       {/* 6. SHOP BY LIFESTYLE TAGS SECTION */}
       <section className="w-full px-4 sm:px-6 lg:px-12 space-y-6 bg-ivory-200 border-y border-ivory-300 py-10">
-        <div data-reveal="up" className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-ivory-300 pb-3 gap-4">
-          <div>
+        <div data-reveal="up" className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-ivory-300 pb-3 gap-4 text-center sm:text-left">
+          <div className="flex flex-col items-center sm:items-start">
             <span className="text-xs uppercase tracking-[0.3em] text-gold font-bold">
               Curated Lifestyle Aesthetics
             </span>
@@ -392,7 +392,7 @@ export default function HomePage() {
           </div>
 
           {/* Slider Arrows */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center sm:justify-end space-x-3">
             <button
               onClick={scrollLeftLifestyle}
               className="p-2.5 border border-gold/50 bg-ivory text-gold hover:bg-crimson hover:text-ivory hover:border-crimson transition-colors rounded-full shadow-sm cursor-pointer"
