@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   Product,
   Category,
@@ -205,17 +206,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+  const [customerUser, setCustomerUser] = useState<User | null>(() => {
     if (typeof window !== "undefined") {
       try {
         const savedUser = localStorage.getItem("ks_user");
-        if (savedUser) return JSON.parse(savedUser);
+        if (savedUser) { const user = JSON.parse(savedUser); return user.role === "customer" ? user : null; }
       } catch (e) {
         console.warn("Could not load ks_user from localStorage:", e);
       }
     }
     return null;
   });
+  const [adminUser, setAdminUser] = useState<User | null>(() => {
+    try {
+      if (typeof window === "undefined") return null;
+      const saved = localStorage.getItem("ks_admin_user") || localStorage.getItem("ks_user");
+      if (!saved) return null;
+      const user = JSON.parse(saved);
+      return user.role === "admin" ? user : null;
+    } catch { return null; }
+  });
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+  const currentUser = isAdminRoute ? adminUser : customerUser;
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [ipAddress, setIpAddress] = useState("127.0.0.1");
@@ -362,13 +376,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (currentUser) {
-        localStorage.setItem("ks_user", JSON.stringify(currentUser));
+      if (customerUser) {
+        localStorage.setItem("ks_user", JSON.stringify(customerUser));
       } else {
         localStorage.removeItem("ks_user");
       }
     }
-  }, [currentUser]);
+  }, [customerUser]);
+
+  useEffect(() => {
+    if (adminUser) localStorage.setItem("ks_admin_user", JSON.stringify(adminUser));
+    else localStorage.removeItem("ks_admin_user");
+  }, [adminUser]);
 
   // Auth Actions
   const openAuthModal = () => setIsAuthModalOpen(true);
@@ -391,13 +410,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       email,
       role: isAdmin ? "admin" : "customer",
     };
-    setCurrentUser(user);
+    if (isAdmin) setAdminUser(user);
+    else setCustomerUser(user);
     closeAuthModal();
     return true;
   };
 
   const logout = () => {
-    setCurrentUser(null);
+    if (isAdminRoute) setAdminUser(null);
+    else setCustomerUser(null);
   };
 
   // Cart Actions

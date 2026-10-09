@@ -38,7 +38,7 @@ export default function Navbar() {
     setHeaderHidden(false);
     const handleScroll = () => {
       const position = Math.max(0, window.scrollY);
-      if (position < 80 || mobileMenuOpen || mobileProfileOpen || profileDropdownOpen) {
+      if (window.matchMedia("(min-width: 1024px)").matches || position < 80 || mobileMenuOpen || mobileProfileOpen || profileDropdownOpen) {
         setHeaderHidden(false);
         lastPosition = position;
         return;
@@ -48,7 +48,11 @@ export default function Navbar() {
       lastPosition = position;
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [pathname, mobileMenuOpen, mobileProfileOpen, profileDropdownOpen]);
 
   const isAdminPage = pathname?.startsWith("/admin");
@@ -77,7 +81,7 @@ export default function Navbar() {
   if (isAdminPage) return null;
 
   return (
-    <header onFocusCapture={() => setHeaderHidden(false)} className={`sticky top-0 z-50 shrink-0 bg-ivory shadow-luxury border-b border-gold/30 transition-transform duration-300 motion-reduce:transition-none ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
+    <header onFocusCapture={() => setHeaderHidden(false)} className={`sticky top-0 z-50 shrink-0 bg-ivory shadow-luxury border-b border-gold/30 transition-transform duration-300 motion-reduce:transition-none lg:translate-y-0 ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* 1. TOP ANNOUNCEMENT BAR (DYNAMIC SCROLLING MARQUEE) */}
       {isMounted && navbarCoupons.length > 0 && <div className="bg-[#2B0B14] text-ivory py-1.5 overflow-hidden text-[11px] font-sans tracking-wide border-b border-gold/30">
         <div className="animate-marquee whitespace-nowrap flex items-center space-x-6 sm:space-x-8 font-medium">
