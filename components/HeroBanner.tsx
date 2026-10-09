@@ -49,7 +49,7 @@ export default function HeroBanner() {
   };
 
   return (
-    <div data-home-hero className="relative w-full h-[88vh] min-h-[650px] max-h-[900px] bg-ink overflow-hidden group">
+    <div data-home-hero className="relative w-full h-[52vh] sm:h-[62vh] lg:h-[70vh] min-h-[380px] sm:min-h-[460px] max-h-[640px] bg-ink overflow-hidden group">
       {/* Background Banner Image & Dark Vignette Overlay */}
       <div className="hero-drift absolute inset-0 transition-opacity duration-1000 ease-in-out">
         <Image
@@ -66,14 +66,14 @@ export default function HeroBanner() {
       </div>
 
       {/* Hero Content Overlay (Centered on Mobile, Respects text_align on Desktop) */}
-      <div className={`relative max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-12 flex flex-col justify-end pb-16 sm:pb-20 md:pb-24 items-center text-center text-ivory ${desktopAlignClass}`}>
-        <div key={banner.id} className={`hero-entrance max-w-2xl space-y-6 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
-          <p className="font-sans text-xs sm:text-sm uppercase tracking-[0.35em] text-[#E5C378] font-bold drop-shadow-md">
+      <div className={`relative max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-12 flex flex-col justify-end pb-8 sm:pb-12 md:pb-14 items-center text-center text-ivory ${desktopAlignClass}`}>
+        <div key={banner.id} className={`hero-entrance max-w-2xl space-y-3 sm:space-y-5 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
+          <p className="font-sans text-[11px] sm:text-xs uppercase tracking-[0.3em] text-[#E5C378] font-bold drop-shadow-md">
             {banner.subtitle || "KAAVU STYLES EXCLUSIVE"}
           </p>
 
           <h1
-            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light leading-tight tracking-tight uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]"
+            className="font-serif text-3xl sm:text-5xl lg:text-6xl font-light leading-tight tracking-tight uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]"
             style={{ color: banner.textColor || "#FFFFFF" }}
           >
             {banner.title.split(" ").map((word, i) => (
@@ -83,10 +83,10 @@ export default function HeroBanner() {
             ))}
           </h1>
 
-          <div className={`pt-4 flex items-center justify-center space-x-6 w-full ${desktopCtaAlignClass}`}>
+          <div className={`pt-2 sm:pt-3 flex items-center justify-center space-x-6 w-full ${desktopCtaAlignClass}`}>
             <Link
               href={banner.ctaLink || "/shop"}
-              className="px-8 py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury hover:scale-105"
+              className="px-6 py-3 sm:px-8 sm:py-3.5 bg-crimson hover:bg-crimson-800 text-ivory text-[11px] sm:text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury hover:scale-105"
             >
               {banner.ctaText || "Explore Collection"}
             </Link>

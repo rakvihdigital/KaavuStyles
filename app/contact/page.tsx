@@ -28,7 +28,7 @@ export default function ContactPage() {
   return (
     <div className="w-full space-y-12 pb-12">
       {/* FULL-WIDTH HEADER BANNER (#2B0B14 BURGUNDY BACKGROUND - NO SIDE MARGINS) */}
-      <div className="relative w-full text-center space-y-3 bg-[#2B0B14] border-y-2 border-gold/40 py-14 px-4 shadow-2xl overflow-hidden">
+      <div className="relative w-full text-center space-y-2.5 bg-[#2B0B14] border-y-2 border-gold/40 py-8 sm:py-10 px-4 shadow-2xl overflow-hidden">
         <div className="relative z-10 max-w-3xl mx-auto space-y-3">
           <span className="text-xs uppercase tracking-[0.35em] text-[#E5C378] font-bold">
             Client Concierge

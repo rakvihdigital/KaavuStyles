@@ -59,7 +59,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-ivory shadow-luxury border-b border-gold/30 transition-all">
       {/* 1. TOP ANNOUNCEMENT BAR (DYNAMIC SCROLLING MARQUEE) */}
-      <div className="bg-[#2B0B14] text-ivory py-2 overflow-hidden text-xs font-sans tracking-wide border-b border-gold/30">
+      <div className="bg-[#2B0B14] text-ivory py-1.5 overflow-hidden text-[11px] font-sans tracking-wide border-b border-gold/30">
         <div className="animate-marquee whitespace-nowrap flex items-center space-x-6 sm:space-x-8 font-medium">
           {[1, 2, 3, 4, 5, 6].map((group) => (
             <React.Fragment key={group}>
@@ -90,10 +90,10 @@ export default function Navbar() {
 
       {/* 2. MAIN NAVIGATION ROW */}
       <div className="w-full px-4 sm:px-6 lg:px-12">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* BRAND LOGO */}
-          <Link href="/" className="flex items-center space-x-3.5 group">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-gold shadow-sm bg-ivory flex items-center justify-center group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center space-x-2.5 sm:space-x-3 group">
+            <div className="relative w-8 h-8 sm:w-9.5 sm:h-9.5 rounded-full overflow-hidden border-2 border-gold shadow-sm bg-ivory flex items-center justify-center group-hover:scale-105 transition-transform">
               <Image
                 src="/icon.jpeg"
                 alt="Kaavu Styles Mark"
@@ -103,10 +103,10 @@ export default function Navbar() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-xl sm:text-2xl font-normal tracking-[0.18em] text-ink uppercase group-hover:text-burgundy transition-colors">
+              <span className="font-serif text-base sm:text-xl font-normal tracking-[0.16em] text-ink uppercase group-hover:text-burgundy transition-colors">
                 Kaavu Styles
               </span>
-              <span className="text-[9px] tracking-[0.25em] uppercase text-gold font-sans -mt-0.5 block">
+              <span className="text-[8px] sm:text-[9px] tracking-[0.2em] uppercase text-gold font-sans -mt-0.5 block">
                 For Every Version Of You
               </span>
             </div>

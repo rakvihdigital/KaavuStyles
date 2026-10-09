@@ -8,8 +8,8 @@ export default function OurStoryPage() {
   return (
     <div className="space-y-20 pb-24">
       {/* Story Header Hero Banner (#2B0B14 BURGUNDY BACKGROUND) */}
-      <section className="relative bg-[#2B0B14] border-b-2 border-gold/40 text-ivory py-20 px-4 text-center overflow-hidden shadow-2xl">
-        <div className="relative z-10 max-w-3xl mx-auto space-y-3">
+      <section className="relative bg-[#2B0B14] border-b-2 border-gold/40 text-ivory py-10 sm:py-14 px-4 text-center overflow-hidden shadow-2xl">
+        <div className="relative z-10 max-w-3xl mx-auto space-y-2.5">
           <span className="text-xs uppercase tracking-[0.35em] text-[#E5C378] font-bold">
             Kaavu Styles Narrative
           </span>
