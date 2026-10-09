@@ -31,6 +31,25 @@ export default function Navbar() {
   const cartCount = getCartItemCount();
 
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+
+  useEffect(() => {
+    let lastPosition = Math.max(0, window.scrollY);
+    setHeaderHidden(false);
+    const handleScroll = () => {
+      const position = Math.max(0, window.scrollY);
+      if (position < 80 || mobileMenuOpen || mobileProfileOpen || profileDropdownOpen) {
+        setHeaderHidden(false);
+        lastPosition = position;
+        return;
+      }
+      if (Math.abs(position - lastPosition) < 12) return;
+      setHeaderHidden(position > lastPosition);
+      lastPosition = position;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname, mobileMenuOpen, mobileProfileOpen, profileDropdownOpen]);
 
   const isAdminPage = pathname?.startsWith("/admin");
 
@@ -58,7 +77,7 @@ export default function Navbar() {
   if (isAdminPage) return null;
 
   return (
-    <header className="sticky top-0 z-50 shrink-0 bg-ivory shadow-luxury border-b border-gold/30 transition-all">
+    <header onFocusCapture={() => setHeaderHidden(false)} className={`sticky top-0 z-50 shrink-0 bg-ivory shadow-luxury border-b border-gold/30 transition-transform duration-300 motion-reduce:transition-none ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* 1. TOP ANNOUNCEMENT BAR (DYNAMIC SCROLLING MARQUEE) */}
       {isMounted && navbarCoupons.length > 0 && <div className="bg-[#2B0B14] text-ivory py-1.5 overflow-hidden text-[11px] font-sans tracking-wide border-b border-gold/30">
         <div className="animate-marquee whitespace-nowrap flex items-center space-x-6 sm:space-x-8 font-medium">
