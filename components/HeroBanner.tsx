@@ -57,17 +57,17 @@ export default function HeroBanner() {
 
   const bannerAlignClass =
     textAlign === "right"
-      ? "items-end text-right ml-auto mr-0"
+      ? "items-center text-center mx-auto md:items-end md:text-right md:ml-auto md:mr-0"
       : textAlign === "center"
       ? "items-center text-center mx-auto"
-      : "items-start text-left mx-0";
+      : "items-center text-center mx-auto md:items-start md:text-left md:mx-0";
 
   const ctaAlignClass =
     textAlign === "right"
-      ? "justify-end"
+      ? "justify-center md:justify-end"
       : textAlign === "center"
       ? "justify-center"
-      : "justify-start";
+      : "justify-center md:justify-start";
 
   const handlePrev = () => {
     setCurrentIdx((prev) => (prev === 0 ? activeBanners.length - 1 : prev - 1));
@@ -91,7 +91,7 @@ export default function HeroBanner() {
         <div className={`absolute inset-0 ${textAlign === "right" ? "bg-gradient-to-l" : textAlign === "center" ? "bg-gradient-to-t" : "bg-gradient-to-r"} from-black/65 via-black/20 to-transparent`} />
       </div>
 
-      {/* Mobile and desktop both follow the banner alignment. */}
+      {/* Mobile content is centered; desktop follows the banner alignment. */}
       <div className={`absolute inset-0 max-w-7xl mx-auto px-6 pt-10 pb-14 md:px-16 md:py-8 lg:px-20 flex flex-col justify-end md:justify-center text-ivory ${bannerAlignClass}`}>
         <div key={banner.id} className={`hero-entrance w-full max-w-[30rem] gap-4 lg:gap-5 flex flex-col ${bannerAlignClass}`}>
           <p className="font-sans text-[9px] sm:text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.3em] text-ivory/90 font-medium max-w-full break-words">

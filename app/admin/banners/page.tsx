@@ -332,7 +332,7 @@ export default function AdminBannersPage() {
                     {/* Text Alignment Choice */}
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                        Text alignment · desktop & mobile
+                        Text alignment · desktop
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
@@ -468,7 +468,7 @@ export default function AdminBannersPage() {
                       <div className="relative aspect-[4/5] w-48 mx-auto rounded-xl bg-ink border-4 border-ink overflow-hidden shadow-lg">
                         {(mobileImages[0] || bannerImages[0]) ? <Image src={mobileImages[0] || bannerImages[0]} alt="Mobile banner preview" fill sizes="192px" className="object-cover object-top" /> : <p className="p-4 text-xs text-ivory">Upload a mobile photo below</p>}
                         <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
-                        <div className={`absolute bottom-4 left-3 right-3 space-y-2 ${textAlign === "right" ? "text-right" : textAlign === "center" ? "text-center" : "text-left"}`}>
+                        <div className="absolute bottom-4 left-3 right-3 space-y-2 text-center">
                           {subtitle && <p className="text-[7px] uppercase tracking-wider text-ivory line-clamp-2">{subtitle}</p>}
                           <h4 className="font-serif text-lg leading-tight line-clamp-3" style={{ color: textColor }}>{title || "Your banner headline"}</h4>
                           {ctaText && <span className="inline-block border border-ivory/60 px-2 py-1 text-[7px] uppercase tracking-wider text-ivory">{ctaText} →</span>}
