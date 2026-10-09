@@ -15,36 +15,12 @@ export default function HeroBanner() {
     if (activeBanners.length <= 1 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const interval = setInterval(() => {
       setCurrentIdx((prev) => (prev + 1) % activeBanners.length);
-    }, 6000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [activeBanners.length]);
 
   if (activeBanners.length === 0) {
-    return (
-      <div data-home-hero className="relative w-full h-[85vh] min-h-[600px] max-h-[850px] bg-ink overflow-hidden flex items-end justify-center pb-16 sm:pb-20 md:pb-24 border-b border-ivory-300">
-        <div className="absolute inset-0 bg-gradient-to-r from-crimson-900/60 via-ink to-ink" />
-        <div className="hero-entrance relative max-w-4xl mx-auto px-6 text-center space-y-6 text-ivory">
-          <p className="font-sans text-xs sm:text-sm uppercase tracking-[0.4em] text-gold font-semibold">
-            Kaavu Styles Boutique
-          </p>
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl uppercase font-light leading-tight">
-            Made For Every <br />
-            <em className="text-gold italic font-normal">Version Of You</em>
-          </h1>
-          <p className="text-xs sm:text-sm text-ivory-300 max-w-xl mx-auto font-sans leading-relaxed">
-            Rich maroon, soft gold, unhurried silhouettes. Clothing and adornment that belongs to every mood, every day.
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/shop"
-              className="inline-block px-10 py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury"
-            >
-              Explore Collection
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const banner = activeBanners[currentIdx];
@@ -113,12 +89,6 @@ export default function HeroBanner() {
               className="px-8 py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury hover:scale-105"
             >
               {banner.ctaText || "Explore Collection"}
-            </Link>
-            <Link
-              href="/about"
-              className="text-xs uppercase tracking-[0.24em] border-b border-gold text-gold hover:text-ivory hover:border-ivory pb-1 transition-colors"
-            >
-              Our Heritage
             </Link>
           </div>
         </div>
