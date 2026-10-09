@@ -38,34 +38,8 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
 
-        </div>
-
-        {/* Product Info */}
-        <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
-          <div>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold block">
-              {product.category}
-            </span>
-            <h3 className="font-serif text-base text-ink font-normal leading-tight group-hover:text-crimson transition-colors line-clamp-1 mt-0.5">
-              {product.name}
-            </h3>
-          </div>
-
-          <div className="flex items-baseline justify-between pt-1 border-t border-ivory-200">
-            <div className="flex items-baseline space-x-2">
-              <span className="font-sans text-sm font-semibold text-crimson">
-                {formatPrice(product.price)}
-              </span>
-              {product.originalPrice && (
-                <span className="text-xs text-ink-muted line-through font-normal">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
-            <span className={`text-[10px] font-medium ${soldOut ? "text-crimson" : "text-emerald-700"}`}>{soldOut ? "Out of stock" : "In stock"}</span>
-          </div>
           {/* Wishlist & Add to Cart */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-ivory-200">
+          <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-center gap-2">
             {/* Wishlist Button */}
             <button
               onClick={(e) => {
@@ -98,6 +72,33 @@ export default function ProductCard({ product }: { product: Product }) {
               <ShoppingBag className="w-3.5 h-3.5" />
             </button>
           </div>
+        </div>
+
+        {/* Product Info */}
+        <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold block">
+              {product.category}
+            </span>
+            <h3 className="font-serif text-base text-ink font-normal leading-tight group-hover:text-crimson transition-colors line-clamp-1 mt-0.5">
+              {product.name}
+            </h3>
+          </div>
+
+          <div className="flex items-baseline justify-between pt-1 border-t border-ivory-200">
+            <div className="flex items-baseline space-x-2">
+              <span className="font-sans text-sm font-semibold text-crimson">
+                {formatPrice(product.price)}
+              </span>
+              {product.originalPrice && (
+                <span className="text-xs text-ink-muted line-through font-normal">
+                  {formatPrice(product.originalPrice)}
+                </span>
+              )}
+            </div>
+            <span className={`text-[10px] font-medium ${soldOut ? "text-crimson" : "text-emerald-700"}`}>{soldOut ? "Out of stock" : "In stock"}</span>
+          </div>
+
         </div>
       </div>
 
