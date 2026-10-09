@@ -70,5 +70,5 @@ export default function HomeMotion({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return <div ref={rootRef} className="home-motion space-y-12 pb-12">{children}</div>;
+  return <div ref={rootRef} className="home-motion">{children}</div>;
 }
