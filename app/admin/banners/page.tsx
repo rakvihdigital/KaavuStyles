@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
 import ImageUploader from "@/components/ImageUploader";
@@ -12,6 +12,7 @@ import { Plus, Trash2, X, AlignLeft, AlignCenter, AlignRight, Pencil } from "luc
 
 export default function AdminBannersPage() {
   const { banners, addBanner, updateBanner, deleteBanner } = useStore();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
 
@@ -26,6 +27,15 @@ export default function AdminBannersPage() {
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right">("left");
   const [textColor, setTextColor] = useState<string>("#F8F3EC");
   const [isActive, setIsActive] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { dialog?.close(); document.body.style.overflow = previous; };
+  }, [isModalOpen]);
 
   const handleOpenAdd = () => {
     setEditingBannerId(null);
@@ -241,34 +251,35 @@ export default function AdminBannersPage() {
 
       {/* Sleek Horizontal Rectangular Banner Configurator Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="relative w-full max-w-5xl bg-ivory border-2 border-gold shadow-2xl rounded-none my-auto overflow-hidden">
+        <dialog ref={dialogRef} aria-labelledby="banner-editor-title" onCancel={(event) => { event.preventDefault(); if (!saving) setIsModalOpen(false); }} className="banner-editor-dialog w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-6xl max-h-[calc(100dvh-2rem)] p-0 border-0 rounded-2xl bg-ivory shadow-2xl">
+          <div className="flex h-[min(860px,calc(100dvh-2rem))] w-full flex-col overflow-hidden">
             {/* Rectangular Header */}
-            <div className="bg-ink text-ivory px-6 py-4 flex items-center justify-between border-b-2 border-gold">
+            <div className="bg-ink text-ivory px-5 sm:px-8 py-5 flex shrink-0 items-center justify-between gap-4">
               <div>
                 <span className="text-[10px] text-gold uppercase tracking-[0.3em] font-semibold block">
-                  HERO BANNER CONFIGURATOR
+                  HOMEPAGE · BANNER STUDIO
                 </span>
-                <h3 className="font-serif text-xl sm:text-2xl text-ivory uppercase">
-                  {editingBannerId ? "Edit Hero Banner" : "Add New Hero Banner"}
+                <h3 id="banner-editor-title" className="font-serif text-2xl sm:text-3xl text-ivory">
+                  {editingBannerId ? "Edit your banner" : "Create a new banner"}
                 </h3>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-none bg-ivory/10 hover:bg-crimson text-ivory transition-colors"
+                type="button" disabled={saving} aria-label="Close banner editor" className="p-2.5 rounded-full bg-ivory/10 hover:bg-crimson text-ivory transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 sm:p-8 space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="flex min-h-0 flex-1">
+              <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start overflow-y-auto min-h-0 flex-1 p-4 sm:p-6">
                   {/* Left Controls Column */}
-                  <div className="lg:col-span-7 space-y-4">
+                  <div className="lg:col-span-6 space-y-5 bg-white rounded-xl border border-ivory-300 p-4 sm:p-6">
+                    <div className="border-b border-ivory-300 pb-4"><h4 className="font-serif text-xl text-ink">Banner content</h4><p className="text-xs text-ink-muted mt-1">Write your message and choose how it appears.</p></div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                        Banner Headline Title *
+                        Headline *
                       </label>
                       <input
                         type="text"
@@ -276,44 +287,44 @@ export default function AdminBannersPage() {
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="e.g. KAAVU STYLES ROYAL SILKS"
-                        className="w-full border border-ivory-300 bg-white p-3 text-xs text-ink focus:border-gold outline-none shadow-inner"
+                        className="w-full rounded-lg border border-ivory-300 bg-ivory-50 p-3 text-base sm:text-sm text-ink focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                        Subtitle Eyebrow Text
+                        Subtitle
                       </label>
                       <input
                         type="text"
                         value={subtitle}
                         onChange={(e) => setSubtitle(e.target.value)}
                         placeholder="e.g. HANDCRAFTED HERITAGE ELEGANCE"
-                        className="w-full border border-ivory-300 bg-white p-3 text-xs text-ink focus:border-gold outline-none shadow-inner"
+                        className="w-full rounded-lg border border-ivory-300 bg-ivory-50 p-3 text-base sm:text-sm text-ink focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                          Button CTA Text
+                          Button label
                         </label>
                         <input
                           type="text"
                           value={ctaText}
                           onChange={(e) => setCtaText(e.target.value)}
-                          className="w-full border border-ivory-300 bg-white p-3 text-xs text-ink focus:border-gold outline-none shadow-inner"
+                          className="w-full rounded-lg border border-ivory-300 bg-ivory-50 p-3 text-base sm:text-sm text-ink focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
                         />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                          Button CTA Link
+                          Button destination
                         </label>
                         <input
                           type="text"
                           value={ctaLink}
                           onChange={(e) => setCtaLink(e.target.value)}
-                          className="w-full border border-ivory-300 bg-white p-3 text-xs text-ink focus:border-gold outline-none shadow-inner"
+                          className="w-full rounded-lg border border-ivory-300 bg-ivory-50 p-3 text-base sm:text-sm text-ink focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
                         />
                       </div>
                     </div>
@@ -321,7 +332,7 @@ export default function AdminBannersPage() {
                     {/* Text Alignment Choice */}
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                        Text Position & Alignment
+                        Text alignment · desktop & mobile
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
@@ -333,7 +344,8 @@ export default function AdminBannersPage() {
                             key={id}
                             type="button"
                             onClick={() => setTextAlign(id as "left" | "center" | "right")}
-                            className={`py-2.5 px-3 border flex items-center justify-center space-x-1.5 text-xs font-semibold uppercase tracking-wider transition-all ${
+                            aria-pressed={textAlign === id}
+                            className={`rounded-lg py-3 px-2 border flex items-center justify-center space-x-1.5 text-xs font-semibold uppercase tracking-wider transition-all ${
                               textAlign === id
                                 ? "bg-crimson text-ivory border-crimson shadow-md"
                                 : "bg-white border-ivory-300 text-ink hover:border-ink"
@@ -346,7 +358,7 @@ export default function AdminBannersPage() {
                       </div>
                     </div>
 
-                    {/* Headline Text Color Choice */}
+                    {/* Headline color Choice */}
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
                         Headline Text Color
@@ -363,7 +375,8 @@ export default function AdminBannersPage() {
                             key={color.hex}
                             type="button"
                             onClick={() => setTextColor(color.hex)}
-                            className={`px-3 py-2 border text-xs flex items-center space-x-2 transition-all ${
+                            aria-pressed={textColor === color.hex}
+                            className={`rounded-lg px-3 py-2 border text-xs flex items-center space-x-2 transition-all ${
                               textColor === color.hex
                                 ? "border-gold bg-ink text-gold font-bold shadow"
                                 : "border-ivory-300 bg-white text-ink hover:border-ink"
@@ -389,24 +402,25 @@ export default function AdminBannersPage() {
                           className="w-4 h-4 accent-crimson cursor-pointer"
                         />
                         <span className="text-xs font-bold uppercase tracking-wider text-ink">
-                          Set Banner as Active in Hero Slider
+                          Show this banner on the homepage
                         </span>
                       </label>
                     </div>
                   </div>
 
                   {/* Right Live Preview & Upload Column */}
-                  <div className="lg:col-span-5 space-y-4">
+                  <div className="lg:col-span-6 space-y-5 bg-white rounded-xl border border-ivory-300 p-4 sm:p-6">
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
-                        Live Widescreen Banner Preview
+                        Desktop preview · 1600 × 500 px
                       </label>
-                      <div className="relative aspect-[1600/500] w-full bg-ink border-2 border-gold overflow-hidden shadow-lg group">
+                      <div className="relative aspect-[1600/500] w-full rounded-lg bg-ink border border-gold/30 overflow-hidden group">
                         {bannerImages[0] ? (
                           <Image
                             src={bannerImages[0]}
                             alt="Banner Preview"
                             fill
+                            sizes="(min-width: 1024px) 480px, 90vw"
                             className="object-cover object-top opacity-80"
                           />
                         ) : (
@@ -451,8 +465,14 @@ export default function AdminBannersPage() {
 
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-2">Mobile Preview — 800 × 1000 px</p>
-                      <div className="relative aspect-[4/5] w-40 mx-auto bg-ink border border-gold overflow-hidden">
-                        {(mobileImages[0] || bannerImages[0]) ? <Image src={mobileImages[0] || bannerImages[0]} alt="Mobile banner preview" fill sizes="160px" className="object-cover object-top" /> : <p className="p-4 text-xs text-ivory">Upload a mobile photo below</p>}
+                      <div className="relative aspect-[4/5] w-48 mx-auto rounded-xl bg-ink border-4 border-ink overflow-hidden shadow-lg">
+                        {(mobileImages[0] || bannerImages[0]) ? <Image src={mobileImages[0] || bannerImages[0]} alt="Mobile banner preview" fill sizes="192px" className="object-cover object-top" /> : <p className="p-4 text-xs text-ivory">Upload a mobile photo below</p>}
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
+                        <div className={`absolute bottom-4 left-3 right-3 space-y-2 ${textAlign === "right" ? "text-right" : textAlign === "center" ? "text-center" : "text-left"}`}>
+                          {subtitle && <p className="text-[7px] uppercase tracking-wider text-ivory line-clamp-2">{subtitle}</p>}
+                          <h4 className="font-serif text-lg leading-tight line-clamp-3" style={{ color: textColor }}>{title || "Your banner headline"}</h4>
+                          {ctaText && <span className="inline-block border border-ivory/60 px-2 py-1 text-[7px] uppercase tracking-wider text-ivory">{ctaText} →</span>}
+                        </div>
                       </div>
                     </div>
                     <ImageUploader images={mobileImages} onChange={setMobileImages} single={true} alwaysOptimize maxDimension={1000} quality={0.78} label="Mobile Banner — 800 × 1000 px (optional)" />
@@ -470,27 +490,27 @@ export default function AdminBannersPage() {
                   </div>
                 </div>
 
-                {saveError && <p role="alert" className="text-sm text-crimson">{saveError}</p>}
+                {saveError && <p role="alert" className="px-5 py-3 bg-crimson/5 border-t border-crimson/20 text-sm text-crimson">{saveError}</p>}
                 {/* Bottom Action Row */}
-                <div className="pt-4 border-t border-ivory-300 flex items-center justify-end space-x-4">
+                <div className="shrink-0 px-4 sm:px-6 py-4 bg-white border-t border-ivory-300 flex items-center justify-end gap-3">
                   <button
-                    type="button"
+                    type="button" disabled={saving}
                     onClick={() => setIsModalOpen(false)}
-                    className="px-6 py-3 border border-ink text-ink hover:bg-ink hover:text-ivory text-xs uppercase tracking-widest font-semibold transition-colors"
+                    className="rounded-lg px-5 py-3 border border-ivory-300 text-ink hover:bg-ink hover:text-ivory text-xs uppercase tracking-widest font-semibold transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit" disabled={saving}
-                    className="px-8 py-3 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.2em] font-semibold shadow-lg transition-colors flex items-center space-x-2"
+                    className="rounded-lg px-5 sm:px-8 py-3 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.2em] font-semibold shadow-lg transition-colors flex items-center space-x-2"
                   >
-                    <span>{saving ? "Saving…" : editingBannerId ? "Save Banner Changes" : "Create Hero Banner"}</span>
+                    <span>{saving ? "Saving…" : editingBannerId ? "Save changes" : "Create banner"}</span>
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

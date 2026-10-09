@@ -1,1 +1,2 @@
 ALTER TABLE public.banners ADD COLUMN IF NOT EXISTS mobile_image_url TEXT;
+NOTIFY pgrst, 'reload schema';

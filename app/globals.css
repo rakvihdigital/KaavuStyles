@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.banner-editor-dialog::backdrop {
+  background: rgba(43, 11, 20, .7);
+  backdrop-filter: blur(5px);
+}
+
 html, body {
   width: 100%;
   max-width: 100%;
