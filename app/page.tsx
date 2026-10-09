@@ -22,23 +22,8 @@ import {
 export default function HomePage() {
   const { products, categories, instagramPosts, lifestyleTags, isLoading } = useStore();
   const [activeTag, setActiveTag] = useState("all");
-  const [pageLoading, setPageLoading] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const lifestyleSliderRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasShown = sessionStorage.getItem("ks_splash_shown");
-      if (!hasShown) {
-        setPageLoading(true);
-        const timer = setTimeout(() => {
-          setPageLoading(false);
-          sessionStorage.setItem("ks_splash_shown", "true");
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, []);
 
   // 4-second Auto-scrolling for Latest Products Slider
   useEffect(() => {
@@ -121,31 +106,7 @@ export default function HomePage() {
   };
 
   return (
-    <>
-      {pageLoading && (
-        <div className="fixed inset-0 z-50 bg-[#2B0B14] flex flex-col items-center justify-center text-ivory space-y-6">
-          <div className="relative w-24 h-24 rounded-full border-2 border-gold p-1.5 animate-pulse shadow-2xl bg-[#2B0B14]">
-            <div className="relative w-full h-full rounded-full overflow-hidden">
-              <Image src="/icon.jpeg" alt="Kaavu Styles Emblem" fill className="object-cover" priority />
-            </div>
-          </div>
-          <div className="text-center space-y-1.5 px-4">
-            <h1 className="font-serif text-3xl sm:text-4xl uppercase tracking-[0.25em] text-[#E5C378] font-light">
-              KAAVU STYLES
-            </h1>
-            <p className="text-xs uppercase tracking-[0.3em] text-ivory-300 font-sans font-medium">
-              For Every Version Of You
-            </p>
-          </div>
-          <div className="w-48 h-1 bg-ivory/10 rounded-full overflow-hidden relative border border-gold/30">
-            <div className="absolute inset-y-0 bg-gold animate-marquee w-full" />
-          </div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-gold/80 font-sans font-semibold pt-2">
-            Loading Exclusive Ensembles...
-          </span>
-        </div>
-      )}
-      <HomeMotion>
+    <HomeMotion>
       {/* 1. HERO BANNER SLIDER WITH PARALLAX MOTION */}
       <HeroBanner />
 
@@ -171,36 +132,54 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
-          {categories.slice(0, 5).map((cat, index) => (
-            <Link
-              key={cat.id}
-              data-reveal="up"
-              style={{ transitionDelay: `${index * 80}ms` }}
-              href={`/shop?category=${cat.slug}`}
-              className="group relative h-72 sm:h-96 bg-ivory rounded-t-[999px] border-2 border-gold p-1.5 shadow-luxury transition-all duration-500 hover-lift flex flex-col overflow-hidden [&:nth-child(5)]:col-span-2 sm:[&:nth-child(5)]:col-span-1 [&:nth-child(5)]:w-1/2 sm:[&:nth-child(5)]:w-full [&:nth-child(5)]:mx-auto"
-            >
-              <div className="relative w-full h-full rounded-t-[990px] overflow-hidden bg-ink">
-                <Image
-                  src={cat.imageUrl}
-                  alt={cat.name}
-                  fill
-                  className="object-cover opacity-85 group-hover:scale-110 transition-transform duration-1000 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/30 to-transparent" />
-                <div className="absolute bottom-4 left-3 right-3 text-ivory space-y-1 z-10 text-center">
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-gold font-sans font-bold block">
-                    Collection
-                  </span>
-                  <h3 className="font-serif text-sm sm:text-2xl uppercase font-light tracking-wide group-hover:text-gold transition-colors line-clamp-1 text-center">
-                    {cat.name}
-                  </h3>
-                  <span className="inline-flex items-center justify-center text-[9px] uppercase tracking-[0.2em] text-ivory-300 group-hover:text-ivory font-semibold">
-                    Shop Ensemble <ChevronRight className="w-3 h-3 ml-0.5" />
-                  </span>
-                </div>
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-72 sm:h-96 bg-ivory-200/60 rounded-t-[999px] border-2 border-gold/30 p-4 animate-pulse flex flex-col justify-end text-center space-y-2 relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2B0B14]/40 via-transparent to-transparent" />
+                <div className="h-3 w-16 bg-gold/30 rounded mx-auto relative z-10" />
+                <div className="h-5 w-24 bg-gold/40 rounded mx-auto relative z-10" />
+                <div className="h-3 w-20 bg-gold/30 rounded mx-auto relative z-10" />
               </div>
-            </Link>
-          ))}
+            ))
+          ) : categories.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-ink-muted text-sm font-sans">
+              No categories found. Check back soon for our latest collections.
+            </div>
+          ) : (
+            categories.slice(0, 5).map((cat, index) => (
+              <Link
+                key={cat.id}
+                data-reveal="up"
+                style={{ transitionDelay: `${index * 80}ms` }}
+                href={`/shop?category=${cat.slug}`}
+                className="group relative h-72 sm:h-96 bg-ivory rounded-t-[999px] border-2 border-gold p-1.5 shadow-luxury transition-all duration-500 hover-lift flex flex-col overflow-hidden [&:nth-child(5)]:col-span-2 sm:[&:nth-child(5)]:col-span-1 [&:nth-child(5)]:w-1/2 sm:[&:nth-child(5)]:w-full [&:nth-child(5)]:mx-auto"
+              >
+                <div className="relative w-full h-full rounded-t-[990px] overflow-hidden bg-ink">
+                  <Image
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    fill
+                    className="object-cover opacity-85 group-hover:scale-110 transition-transform duration-1000 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/30 to-transparent" />
+                  <div className="absolute bottom-4 left-3 right-3 text-ivory space-y-1 z-10 text-center">
+                    <span className="text-[9px] uppercase tracking-[0.3em] text-gold font-sans font-bold block">
+                      Collection
+                    </span>
+                    <h3 className="font-serif text-sm sm:text-2xl uppercase font-light tracking-wide group-hover:text-gold transition-colors line-clamp-1 text-center">
+                      {cat.name}
+                    </h3>
+                    <span className="inline-flex items-center justify-center text-[9px] uppercase tracking-[0.2em] text-ivory-300 group-hover:text-ivory font-semibold">
+                      Shop Ensemble <ChevronRight className="w-3 h-3 ml-0.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
@@ -367,16 +346,29 @@ export default function HomePage() {
           ref={sliderRef}
           className="flex space-x-4 overflow-x-auto scrollbar-none scroll-smooth pb-4"
         >
-          {displayLatest.map((product, index) => (
-            <div
-              key={product.id}
-              data-reveal="up"
-              style={{ transitionDelay: `${(index % 5) * 70}ms` }}
-              className="w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(20%-13px)] flex-shrink-0"
-            >
-              <ProductCard product={product} />
-            </div>
-          ))}
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(20%-13px)] flex-shrink-0 animate-pulse space-y-3"
+              >
+                <div className="aspect-[3/4] bg-ivory-300 border border-gold/30 rounded-sm" />
+                <div className="h-4 bg-ivory-300 w-3/4 rounded mx-auto" />
+                <div className="h-3 bg-ivory-300 w-1/2 rounded mx-auto" />
+              </div>
+            ))
+          ) : (
+            displayLatest.map((product, index) => (
+              <div
+                key={product.id}
+                data-reveal="up"
+                style={{ transitionDelay: `${(index % 5) * 70}ms` }}
+                className="w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(20%-13px)] flex-shrink-0"
+              >
+                <ProductCard product={product} />
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -445,7 +437,20 @@ export default function HomePage() {
         </div>
 
         {/* Tag Filtered Horizontal Slider Carousel */}
-        {lifestyleFilteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex space-x-4 overflow-x-auto scrollbar-none scroll-smooth pb-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(20%-13px)] flex-shrink-0 animate-pulse space-y-3"
+              >
+                <div className="aspect-[3/4] bg-ivory-300 border border-gold/30 rounded-sm" />
+                <div className="h-4 bg-ivory-300 w-3/4 rounded mx-auto" />
+                <div className="h-3 bg-ivory-300 w-1/2 rounded mx-auto" />
+              </div>
+            ))}
+          </div>
+        ) : lifestyleFilteredProducts.length === 0 ? (
           <div className="text-center py-12 text-ink-muted text-sm font-sans">
             No products found under #{activeTag}. Explore other lifestyle tags or view all products.
           </div>
@@ -539,6 +544,5 @@ export default function HomePage() {
         )}
       </section>
     </HomeMotion>
-    </>
   );
 }
