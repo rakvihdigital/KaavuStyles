@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
+import AdminListCard from "@/components/AdminListCard";
 import { useStore } from "@/context/StoreContext";
 import { Order } from "@/lib/mockData";
 import { formatPrice } from "@/lib/utils";
@@ -81,7 +82,7 @@ export default function AdminOrdersPage() {
 
         <main className="p-6 sm:p-8 space-y-6 print:p-0 print:m-0">
           {/* Top Key Order & Revenue Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
             {/* Total Orders Card */}
             <div className="bg-ivory border-2 border-ivory-300 p-5 space-y-2 shadow-sm">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-muted">
@@ -165,7 +166,14 @@ export default function AdminOrdersPage() {
 
           {/* Orders Table */}
           <div className="bg-ivory border border-ivory-300 shadow-sm overflow-hidden print:hidden">
-            <div className="overflow-x-auto">
+            <div className="lg:hidden space-y-3 p-3">
+{!isMounted ? <p className="p-6 text-center text-ink-muted">Loading orders…</p> : filteredOrders.length === 0 ? <p className="p-6 text-center text-ink-muted">No orders match your filters.</p> : filteredOrders.map(o => <AdminListCard key={o.id} title={o.orderNumber} subtitle={o.customerName} badge={o.status}>
+<div className="flex justify-between gap-3"><span className="text-ink-muted">Total</span><strong className="text-crimson">{formatPrice(o.totalAmount)}</strong></div><p className="text-xs text-ink-muted">{o.items.reduce((sum,item) => sum + item.quantity,0)} items · {new Date(o.createdAt).toLocaleDateString('en-IN')}</p>
+<div className="bg-white border border-ivory-300 rounded-lg p-3 space-y-1"><p className="font-medium">{o.customerName}</p><p className="text-xs text-ink-muted break-all">{o.customerEmail}</p><p className="text-xs text-ink-muted">{o.customerPhone}</p></div>
+<label className="block text-xs text-ink-muted">Order status<select aria-label={`Status for ${o.orderNumber}`} value={o.status} onChange={event => handleStatusChange(o.id,event.target.value as Order['status'])} className="block w-full mt-2 p-3 border border-ivory-300 rounded-lg bg-white">{['Pending','Processing','Shipped','Delivered','Cancelled'].map(status => <option key={status}>{status}</option>)}</select></label>
+<button onClick={() => setSelectedOrder(o)} className="w-full bg-crimson text-ivory rounded-lg py-3 text-xs">View details & invoice</button>
+</AdminListCard>)}
+</div><div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-ivory-300 uppercase tracking-wider text-[10px] text-ink-muted bg-ivory-200">
@@ -182,37 +190,37 @@ export default function AdminOrdersPage() {
                 <tbody className="divide-y divide-ivory-200">
                   {!isMounted ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-ink-muted font-semibold">
+                      <td data-label="" colSpan={8} className="py-8 text-center text-ink-muted font-semibold">
                         Loading Orders Log...
                       </td>
                     </tr>
                   ) : filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-ink-muted font-semibold">
+                      <td data-label="" colSpan={8} className="py-8 text-center text-ink-muted font-semibold">
                         No orders matching the selected filter criteria.
                       </td>
                     </tr>
                   ) : (
                     filteredOrders.map((o) => (
                       <tr key={o.id} className="hover:bg-ivory-200/50">
-                        <td className="py-3 px-4 font-mono font-bold text-crimson">
+                        <td data-label="Order #" className="py-3 px-4 font-mono font-bold text-crimson">
                           #{o.orderNumber}
                         </td>
-                        <td className="py-3 px-4">
+                        <td data-label="Customer Details" className="py-3 px-4">
                           <span className="font-semibold text-ink block">{o.customerName}</span>
                           <span className="text-[10px] text-ink-muted font-mono block">{o.customerEmail}</span>
                           <span className="text-[10px] text-gold block">{o.customerPhone}</span>
                         </td>
-                        <td className="py-3 px-4 text-ink font-semibold">
+                        <td data-label="Items Count" className="py-3 px-4 text-ink font-semibold">
                           {o.items.reduce((sum, item) => sum + item.quantity, 0)} items
                         </td>
-                        <td className="py-3 px-4 font-serif text-sm font-bold text-crimson">
+                        <td data-label="Total Amount" className="py-3 px-4 font-serif text-sm font-bold text-crimson">
                           {formatPrice(o.totalAmount)}
                         </td>
-                        <td className="py-3 px-4 font-mono text-[10px] text-ink-muted">
+                        <td data-label="Guest IP" className="py-3 px-4 font-mono text-[10px] text-ink-muted">
                           {o.ipAddress || "—"}
                         </td>
-                        <td className="py-3 px-4">
+                        <td data-label="Status" className="py-3 px-4">
                           <select
                             value={o.status}
                             onChange={(e: any) => handleStatusChange(o.id, e.target.value)}
@@ -225,16 +233,16 @@ export default function AdminOrdersPage() {
                             <option value="Cancelled">Cancelled</option>
                           </select>
                         </td>
-                        <td className="py-3 px-4 text-ink-muted text-[11px]">
+                        <td data-label="Date" className="py-3 px-4 text-ink-muted text-[11px]">
                           {o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN") : "—"}
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td data-label="Actions" className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end space-x-2">
                             <Link
                               href={`/admin/orders/invoice/${o.id}`}
                               target="_blank"
                               className="px-3 py-1.5 bg-gold hover:bg-amber-600 text-ink text-[10px] uppercase font-extrabold tracking-wider rounded flex items-center space-x-1 cursor-pointer border border-gold shadow-sm transition-all"
-                              title="Open Dedicated Tax Invoice Page & Download PDF"
+                              title="Open Dedicated Invoice Page & Download PDF"
                             >
                               <Printer className="w-3.5 h-3.5" />
                               <span>Invoice</span>
@@ -258,21 +266,21 @@ export default function AdminOrdersPage() {
         </main>
       </div>
 
-      {/* Order Details & Printable Tax Invoice Modal */}
+      {/* Order Details & Printable Invoice Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-sm overflow-y-auto p-4 sm:p-8 flex justify-center items-start pt-20 sm:pt-24 print:static print:p-0 print:bg-white print:overflow-visible">
           <div className="relative w-full max-w-4xl bg-ivory border-2 border-gold shadow-2xl p-6 sm:p-10 space-y-6 mb-16 print:border-none print:shadow-none print:p-0 print:w-full print:max-w-none print:my-0 print:text-black">
-            {/* Printable Brand Tax Invoice Header */}
+            {/* Printable Brand Invoice Header */}
             <div className="border-b-2 border-gold pb-5 print:border-black flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <span className="text-[10px] uppercase tracking-[0.3em] font-extrabold text-gold block print:text-black">
                   KAAVU STYLES • LUXURY ETHNIC WEAR STUDIO
                 </span>
                 <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-ink uppercase tracking-wide print:text-black mt-0.5">
-                  OFFICIAL RETAIL TAX INVOICE
+                  OFFICIAL RETAIL INVOICE
                 </h3>
                 <p className="text-xs text-ink-muted font-mono mt-1 print:text-gray-700">
-                  Invoice No: <span className="font-bold text-crimson print:text-black">INV-{selectedOrder.orderNumber}</span> • Date: {new Date(selectedOrder.createdAt).toLocaleDateString("en-IN")} • GSTIN: <span className="font-semibold">33AAACK1234F1Z9</span>
+                  Invoice No: <span className="font-bold text-crimson print:text-black">INV-{selectedOrder.orderNumber}</span> • Date: {new Date(selectedOrder.createdAt).toLocaleDateString("en-IN")}
                 </p>
               </div>
 
@@ -281,7 +289,7 @@ export default function AdminOrdersPage() {
                   href={`/admin/orders/invoice/${selectedOrder.id}`}
                   target="_blank"
                   className="px-5 py-2.5 bg-gold hover:bg-amber-600 text-ink text-xs uppercase tracking-wider font-extrabold flex items-center space-x-2 border border-gold shadow-md transition-all cursor-pointer"
-                  title="Open Dedicated Full Page Tax Invoice"
+                  title="Open Dedicated Full Page Invoice"
                 >
                   <Printer className="w-4 h-4 text-ink" />
                   <span>Open Full Invoice Page</span>
@@ -349,16 +357,16 @@ export default function AdminOrdersPage() {
                   <tbody className="divide-y divide-ivory-300 print:divide-gray-300">
                     {selectedOrder.items.map((item, idx) => (
                       <tr key={idx} className="hover:bg-ivory-100/80">
-                        <td className="p-3 font-mono font-bold">{idx + 1}</td>
-                        <td className="p-3 font-serif font-semibold text-ink print:text-black">
+                        <td data-label="#" className="p-3 font-mono font-bold">{idx + 1}</td>
+                        <td data-label="Item Description" className="p-3 font-serif font-semibold text-ink print:text-black">
                           {item.name}
                         </td>
-                        <td className="p-3 text-ink-muted text-[11px]">
+                        <td data-label="Variant Details" className="p-3 text-ink-muted text-[11px]">
                           Size: <span className="font-semibold text-ink print:text-black">{item.size || "Standard"}</span> • Color: <span className="font-semibold text-ink print:text-black">{item.color || "Default"}</span>
                         </td>
-                        <td className="p-3 font-bold font-mono">{item.quantity}</td>
-                        <td className="p-3 font-mono">{formatPrice(item.price)}</td>
-                        <td className="p-3 text-right font-mono font-bold text-crimson print:text-black">
+                        <td data-label="Qty" className="p-3 font-bold font-mono">{item.quantity}</td>
+                        <td data-label="Unit Rate" className="p-3 font-mono">{formatPrice(item.price)}</td>
+                        <td data-label="Line Total" className="p-3 text-right font-mono font-bold text-crimson print:text-black">
                           {formatPrice(item.price * item.quantity)}
                         </td>
                       </tr>
@@ -374,10 +382,6 @@ export default function AdminOrdersPage() {
                   <p>Handcrafted in India. Certified 100% quality inspected before dispatch.</p>
                 </div>
                 <div className="text-right space-y-1.5 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-ivory-300">
-                  <div className="text-xs text-ink-muted flex justify-between sm:justify-end space-x-6">
-                    <span>Included GST (18%):</span>
-                    <span className="font-mono font-semibold">{formatPrice(selectedOrder.totalAmount * 0.18)}</span>
-                  </div>
                   <div className="text-sm font-bold uppercase tracking-wider text-ink flex justify-between sm:justify-end space-x-6 border-t border-ivory-300 pt-1.5 print:border-black">
                     <span>Grand Total Amount:</span>
                     <span className="font-serif text-2xl font-extrabold text-crimson print:text-black">
@@ -389,7 +393,7 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* Print Footer Notice & Digital Stamp */}
-            <div className="pt-4 border-t border-ivory-300 flex justify-between items-center text-[10px] text-ink-muted print:text-black">
+            <div className="pt-4 border-t border-ivory-300 flex flex-col sm:flex-row gap-3 justify-between sm:items-center text-[10px] text-ink-muted print:text-black">
               <div>
                 <p className="font-bold uppercase text-ink print:text-black">Kaavu Styles Control Center</p>
                 <p>Contact: support@kaavustyles.com | +91 98765 43210</p>

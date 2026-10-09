@@ -1,0 +1,2 @@
+ALTER TABLE public.coupons
+ADD COLUMN IF NOT EXISTS show_in_navbar BOOLEAN NOT NULL DEFAULT false;

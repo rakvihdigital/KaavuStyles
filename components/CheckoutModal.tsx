@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
+import { payWithRazorpay } from "@/lib/razorpay-checkout";
 import {
   X,
   CheckCircle2,
   MapPin,
   Phone,
   User as UserIcon,
-  CreditCard,
-  Ticket,
+    Ticket,
   CheckCircle,
   Building,
   Navigation,
@@ -76,7 +76,7 @@ export default function CheckoutModal({
     applyCoupon,
     removeCoupon,
     getDiscountAmount,
-    addOrder,
+    acceptPaidOrder,
     currentUser,
     ipAddress,
   } = useStore();
@@ -95,9 +95,10 @@ export default function CheckoutModal({
   const [postalCode, setPostalCode] = useState("");
   const [saveAddressLocally, setSaveAddressLocally] = useState(true);
 
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("COD");
   const [couponInput, setCouponInput] = useState("");
   const [couponMsg, setCouponMsg] = useState<{ success: boolean; text: string } | null>(null);
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<any | null>(null);
 
   // Load Saved Addresses on Mount
@@ -158,8 +159,7 @@ export default function CheckoutModal({
   const subtotal = getCartTotal();
   const discount = getDiscountAmount();
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const gstAmount = discountedSubtotal * 0.18;
-  const grandTotal = discountedSubtotal * 1.18;
+  const grandTotal = discountedSubtotal;
 
   const handleApplyCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,9 +170,9 @@ export default function CheckoutModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.length === 0) return;
+    if (cart.length === 0 || placing) return;
 
     // Save address locally if checked
     if (saveAddressLocally && address && city && postalCode) {
@@ -204,23 +204,27 @@ export default function CheckoutModal({
       quantity: item.quantity,
       size: item.selectedSize,
       color: item.selectedColor,
-      image: item.product.images[0] || "",
+      image: item.product.colorImages?.[item.selectedColor]?.[0] || item.product.images[0] || "",
     }));
 
-    const newOrder = addOrder({
+    setPlacing(true); setOrderError("");
+    try {
+    const newOrder = await payWithRazorpay({
       customerName: name,
       customerEmail: email,
       customerPhone: phone,
       shippingAddress: fullShippingAddress,
       city,
       postalCode,
-      totalAmount: grandTotal,
+      couponCode: appliedCoupon?.code,
       status: "Pending",
       items: orderItems,
       ipAddress,
     });
 
+    acceptPaidOrder(newOrder);
     setPlacedOrder(newOrder);
+    } catch (error) { setOrderError(error instanceof Error ? error.message : "Could not place order. Please try again."); } finally { setPlacing(false); }
   };
 
   return (
@@ -285,6 +289,7 @@ export default function CheckoutModal({
           ) : (
             /* Checkout Address Form View */
             <form onSubmit={handleSubmit} className="space-y-6">
+              {orderError && <p role="alert" className="p-4 text-sm text-crimson">{orderError}</p>}
               {/* SAVED ADDRESSES SELECTOR */}
               {savedAddresses.length > 0 && (
                 <div className="space-y-2 border-b border-ivory-300 pb-4">
@@ -475,42 +480,6 @@ export default function CheckoutModal({
                 </label>
               </div>
 
-              {/* PAYMENT METHOD */}
-              <div className="pt-2 border-t border-ivory-300">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-2">
-                  Select Payment Option
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("COD")}
-                    className={`p-3 border text-left flex items-center justify-between text-xs font-semibold cursor-pointer ${
-                      paymentMethod === "COD"
-                        ? "border-crimson bg-crimson/5 text-crimson"
-                        : "border-ivory-300 bg-white text-ink"
-                    }`}
-                  >
-                    <span>Cash on Delivery (COD)</span>
-                    {paymentMethod === "COD" && <CheckCircle2 className="w-4 h-4 text-crimson" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("Online")}
-                    className={`p-3 border text-left flex items-center justify-between text-xs font-semibold cursor-pointer ${
-                      paymentMethod === "Online"
-                        ? "border-crimson bg-crimson/5 text-crimson"
-                        : "border-ivory-300 bg-white text-ink"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      <CreditCard className="w-4 h-4 text-gold" />
-                      <span>Online Payment (UPI/Card)</span>
-                    </div>
-                    {paymentMethod === "Online" && <CheckCircle2 className="w-4 h-4 text-crimson" />}
-                  </button>
-                </div>
-              </div>
 
               {/* COUPON CODE IN CHECKOUT */}
               <div className="bg-ivory-100 p-3 border border-ivory-300 space-y-2">
@@ -562,24 +531,9 @@ export default function CheckoutModal({
 
               {/* ORDER PRICE SUMMARY */}
               <div className="bg-ivory-200 p-4 border border-ivory-300 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-ink-muted">
-                  <span>Subtotal ({cart.length} items):</span>
-                  <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
-                </div>
 
-                {discount > 0 && (
-                  <div className="flex justify-between items-center text-emerald-700 font-bold">
-                    <span>Coupon Discount ({appliedCoupon?.code}):</span>
-                    <span>-{formatPrice(discount)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center text-ink-muted">
-                  <span>Estimated GST (18%):</span>
-                  <span className="font-semibold text-gold">{formatPrice(gstAmount)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-ivory-300">
-                  <span className="font-bold text-ink uppercase tracking-wider">Total Amount (Incl. 18% GST):</span>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-ink uppercase tracking-wider">Total Amount:</span>
                   <span className="font-serif text-2xl text-crimson font-bold">
                     {formatPrice(grandTotal)}
                   </span>
@@ -588,10 +542,10 @@ export default function CheckoutModal({
 
               {/* PLACE ORDER BUTTON */}
               <button
-                type="submit"
+                type="submit" disabled={placing}
                 className="w-full py-4 bg-crimson hover:bg-crimson-800 text-ivory font-sans text-xs uppercase tracking-[0.24em] font-extrabold transition-all shadow-lg cursor-pointer border border-gold/40"
               >
-                Confirm & Place Order ({formatPrice(grandTotal)})
+                {placing ? "Processing payment…" : `Pay ${formatPrice(grandTotal)} & Place Order`}
               </button>
             </form>
           )}

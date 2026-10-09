@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import ShareProduct from "@/components/ShareProduct";
 import { Product } from "@/lib/mockData";
 import { useStore } from "@/context/StoreContext";
+import { stockForSize } from "@/lib/inventory";
 import { formatPrice } from "@/lib/utils";
 import {
   X,
@@ -33,8 +35,11 @@ export default function ProductDetailModal({
   const [selectedImage, setSelectedImage] = useState(
     product.images[0] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800"
   );
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "Standard");
+  const [selectedSize, setSelectedSize] = useState((product.sizes.length ? product.sizes : ["Standard"]).find(size => stockForSize(product, size) > 0) || product.sizes[0] || "Standard");
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || "Standard");
+
+  const gallery = product.colorImages?.[selectedColor]?.length ? product.colorImages[selectedColor] : product.images;
+  useEffect(() => { setSelectedImage(gallery[0] || ""); }, [gallery, selectedColor, product.id]);
 
   // Fullscreen Inspection Modal state for Mobile & Touch/Click
   const [isFullscreenZoomOpen, setIsFullscreenZoomOpen] = useState(false);
@@ -44,23 +49,24 @@ export default function ProductDetailModal({
 
   if (!isOpen) return null;
 
-  const currentImageIdx = product.images.indexOf(selectedImage);
+  const currentImageIdx = gallery.indexOf(selectedImage);
 
   const handlePrevImage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const prevIdx =
-      currentImageIdx <= 0 ? product.images.length - 1 : currentImageIdx - 1;
-    setSelectedImage(product.images[prevIdx] || product.images[0]);
+      currentImageIdx <= 0 ? gallery.length - 1 : currentImageIdx - 1;
+    setSelectedImage(gallery[prevIdx] || gallery[0]);
   };
 
   const handleNextImage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const nextIdx =
-      currentImageIdx >= product.images.length - 1 ? 0 : currentImageIdx + 1;
-    setSelectedImage(product.images[nextIdx] || product.images[0]);
+      currentImageIdx >= gallery.length - 1 ? 0 : currentImageIdx + 1;
+    setSelectedImage(gallery[nextIdx] || gallery[0]);
   };
 
   const handleAddToCart = () => {
+    if (stockForSize(product, selectedSize) <= 0) return;
     addToCart(product, selectedSize, selectedColor, 1);
     onClose();
   };
@@ -134,7 +140,7 @@ export default function ProductDetailModal({
                   />
 
                   {/* PREVIOUS (<) & NEXT (>) OVERLAY ARROWS */}
-                  {product.images.length > 1 && (
+                  {gallery.length > 1 && (
                     <>
                       <button
                         type="button"
@@ -163,9 +169,9 @@ export default function ProductDetailModal({
                 </div>
 
                 {/* Thumbnail Strip */}
-                {product.images.length > 1 && (
+                {gallery.length > 1 && (
                   <div className="flex space-x-2 sm:space-x-3 overflow-x-auto pb-1 scrollbar-none">
-                    {product.images.map((img, idx) => (
+                    {gallery.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedImage(img)}
@@ -241,6 +247,9 @@ export default function ProductDetailModal({
                       {product.sizes.map((sz) => (
                         <button
                           key={sz}
+                          disabled={stockForSize(product, sz) <= 0}
+                          style={stockForSize(product, sz) <= 0 ? { opacity: 0.4, cursor: "not-allowed", textDecoration: "line-through" } : undefined}
+                          title={`${stockForSize(product, sz)} available`}
                           onClick={() => setSelectedSize(sz)}
                           className={`min-w-[44px] px-3.5 py-2 text-xs uppercase tracking-wider transition-all border cursor-pointer ${
                             selectedSize === sz
@@ -254,6 +263,9 @@ export default function ProductDetailModal({
                     </div>
                   </div>
 
+                  <p className="text-xs text-ink-muted">Size {selectedSize}: {stockForSize(product, selectedSize)} in stock</p>
+                  <p className="text-[10px] text-ink-muted break-all">Product ID: {product.id}</p>
+                  <ShareProduct product={product} />
                   {/* Color Selector */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
@@ -268,7 +280,12 @@ export default function ProductDetailModal({
                       {product.colors.map((col) => (
                         <button
                           key={col}
-                          onClick={() => setSelectedColor(col)}
+                          onClick={() => {
+                            setSelectedColor(col);
+                            const photos = product.colorImages?.[col]?.length ? product.colorImages[col] : product.images;
+                            setSelectedImage(photos[0] || "");
+                            setFullscreenScale(1);
+                          }}
                           className={`px-3.5 py-2 text-xs uppercase tracking-wider transition-all border cursor-pointer ${
                             selectedColor === col
                               ? "bg-gold text-ink border-gold font-bold shadow-md"
@@ -285,11 +302,12 @@ export default function ProductDetailModal({
                 {/* Desktop Action Buttons */}
                 <div className="hidden sm:block pt-4 space-y-3">
                   <button
-                    onClick={handleAddToCart}
-                    className="w-full py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-bold transition-all shadow-luxury flex items-center justify-center space-x-2 border border-gold/40 cursor-pointer"
+                    disabled={stockForSize(product, selectedSize) <= 0}
+              onClick={handleAddToCart}
+                    className="w-full py-4 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.24em] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-luxury flex items-center justify-center space-x-2 border border-gold/40 cursor-pointer"
                   >
                     <ShoppingBag className="w-4 h-4" />
-                    <span>Add to Shopping Bag</span>
+                    <span>{stockForSize(product, selectedSize) > 0 ? "Add to Shopping Bag" : "Out of stock"}</span>
                   </button>
 
                   <div className="grid grid-cols-2 gap-2 pt-2 text-[10px] text-ink-muted border-t border-ivory-200">
@@ -311,11 +329,12 @@ export default function ProductDetailModal({
           {/* STICKY BOTTOM ACTION BAR ON MOBILE */}
           <div className="sm:hidden p-3 bg-ivory border-t border-gold/30 shadow-lg flex-shrink-0 space-y-2">
             <button
+              disabled={stockForSize(product, selectedSize) <= 0}
               onClick={handleAddToCart}
               className="w-full py-3.5 bg-crimson active:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.22em] font-bold shadow-md flex items-center justify-center space-x-2 border border-gold/40 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Add to Bag • {formatPrice(product.price)}</span>
+              <span>{stockForSize(product, selectedSize) > 0 ? `Add to Bag • ${formatPrice(product.price)}` : "Out of stock"}</span>
             </button>
             <div className="flex justify-between items-center text-[9px] text-ink-muted px-1 font-semibold">
               <span className="flex items-center space-x-1">
@@ -408,7 +427,7 @@ export default function ProductDetailModal({
             </div>
 
             {/* Previous (<) & Next (>) Arrows in Fullscreen */}
-            {product.images.length > 1 && (
+            {gallery.length > 1 && (
               <>
                 <button
                   type="button"
@@ -431,12 +450,12 @@ export default function ProductDetailModal({
           </div>
 
           {/* Bottom Thumbnail Bar in Fullscreen */}
-          {product.images.length > 1 && (
+          {gallery.length > 1 && (
             <div
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md flex justify-center space-x-2 sm:space-x-3 pt-3 border-t border-gold/30 z-10"
             >
-              {product.images.map((img, idx) => (
+              {gallery.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img)}

@@ -22,6 +22,7 @@ import {
   INITIAL_INSTAGRAM_POSTS,
   INITIAL_COUPONS,
 } from "@/lib/mockData";
+import { stockForSize, reduceInventory } from "@/lib/inventory";
 import { getClientIp } from "@/lib/utils";
 import {
   supabase,
@@ -72,6 +73,7 @@ interface StoreContextType {
   isCartDrawerOpen: boolean;
   ipAddress: string;
   isLoading: boolean;
+  isBannerLoading: boolean;
   toastMessage: ToastMessage | null;
   showToast: (toast: Omit<ToastMessage, "id">) => void;
   hideToast: () => void;
@@ -91,6 +93,7 @@ interface StoreContextType {
   removeFromCart: (productId: string, size: string, color: string) => void;
   updateCartQty: (productId: string, size: string, color: string, qty: number) => void;
   clearCart: () => void;
+  acceptPaidOrder: (order: Order) => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
 
@@ -104,6 +107,7 @@ interface StoreContextType {
   deleteProduct: (id: string) => Promise<void>;
 
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
+  updateCategory: (id: string, category: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
 
   addBanner: (banner: Omit<Banner, "id">) => Promise<void>;
@@ -216,6 +220,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [ipAddress, setIpAddress] = useState("127.0.0.1");
   const [isLoading, setIsLoading] = useState(true);
+  const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
 
   const showToast = (toastData: Omit<ToastMessage, "id">) => {
@@ -230,6 +235,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     setIpAddress(getClientIp());
 
+    let cancelled = false;
+    async function loadBanners() {
+      try {
+        if (isSupabaseConfigured) {
+          const { data, error } = await supabase.from("banners").select("*").order("order_num", { ascending: true });
+          if (!cancelled && !error && data) setBanners(data.map(mapDbBannerToBanner));
+        } else {
+          const saved = localStorage.getItem("ks_banners");
+          if (!cancelled && saved) setBanners(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error("Error loading banners:", error);
+      } finally {
+        if (!cancelled) setIsBannerLoading(false);
+      }
+    }
+    loadBanners();
+
     async function loadDataFromSupabase() {
       setIsLoading(true);
       try {
@@ -238,7 +261,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const [
             { data: pData, error: pErr },
             { data: cData, error: cErr },
-            { data: bData, error: bErr },
             { data: oData, error: oErr },
             { data: tData },
             { data: sData },
@@ -247,7 +269,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ] = await Promise.all([
             supabase.from("products").select("*").order("created_at", { ascending: false }),
             supabase.from("categories").select("*").order("name", { ascending: true }),
-            supabase.from("banners").select("*").order("order_num", { ascending: true }),
             supabase.from("orders").select("*").order("created_at", { ascending: false }),
             supabase.from("lifestyle_tags").select("*"),
             supabase.from("sizes").select("*"),
@@ -257,7 +278,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
           if (!pErr && pData && pData.length > 0) setProducts(pData.map(mapDbProductToProduct));
           if (!cErr && cData && cData.length > 0) setCategories(cData.map(mapDbCategoryToCategory));
-          if (!bErr && bData && bData.length > 0) setBanners(bData.map(mapDbBannerToBanner));
           if (!oErr && oData && oData.length > 0) setOrders(oData.map(mapDbOrderToOrder));
           if (tData && tData.length > 0) setLifestyleTags(tData.map(mapDbTagToTag));
           if (sData && sData.length > 0) setSizes(sData.map(mapDbSizeToSize));
@@ -270,9 +290,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
           const savedCategories = localStorage.getItem("ks_categories");
           if (savedCategories) setCategories(JSON.parse(savedCategories));
-
-          const savedBanners = localStorage.getItem("ks_banners");
-          if (savedBanners) setBanners(JSON.parse(savedBanners));
 
           const savedOrders = localStorage.getItem("ks_orders");
           if (savedOrders) setOrders(JSON.parse(savedOrders));
@@ -288,6 +305,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     loadDataFromSupabase();
+    return () => { cancelled = true; };
   }, []);
 
   // Save Cart & Wishlist locally with QuotaExceeded error prevention
@@ -378,6 +396,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const selectedSize = size || product.sizes[0] || "Standard";
     const selectedColor = color || product.colors[0] || "Standard";
 
+    const latest = products.find(p => p.id === product.id) || product;
+    const alreadyInBag = cart.filter(item => item.product.id === product.id && (latest.sizeStock ? item.selectedSize === selectedSize : true)).reduce((sum, item) => sum + item.quantity, 0);
+    if (!Number.isInteger(qty) || qty <= 0 || alreadyInBag + qty > stockForSize(latest, selectedSize)) {
+      showToast({ type: "info", title: "Stock unavailable", message: `Only ${stockForSize(latest, selectedSize)} available for this size.` });
+      return;
+    }
     setCart((prev) => {
       const existingIndex = prev.findIndex(
         (item) =>
@@ -431,6 +455,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId, size, color);
       return;
     }
+    const product = products.find(value => value.id === productId);
+    const otherQuantity = cart.filter(item => item.product.id === productId && (product?.sizeStock ? item.selectedSize === size : true) && !(item.selectedSize === size && item.selectedColor === color)).reduce((sum, item) => sum + item.quantity, 0);
+    if (!product || !Number.isInteger(qty) || qty + otherQuantity > stockForSize(product, size)) {
+      showToast({ type: "info", title: "Stock unavailable", message: "This quantity is not available for the selected size." });
+      return;
+    }
     setCart((prev) =>
       prev.map((item) => {
         if (
@@ -446,6 +476,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const clearCart = () => setCart([]);
+  const acceptPaidOrder = (order: Order) => {
+    setOrders(previous => [order, ...previous.filter(item => item.id !== order.id)]);
+    clearCart();
+    setAppliedCoupon(null);
+    void supabase.from("products").select("*").order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) setProducts(data.map(mapDbProductToProduct));
+    });
+  };
 
   const getCartTotal = () => cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
@@ -507,13 +545,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const dbRow = mapProductToDbRow(productData);
         const { data, error } = await supabase.from("products").insert([dbRow]).select();
         if (error) {
-          console.error("Supabase Product Insert Error:", error);
+          throw new Error(error.message);
         } else if (data && data[0]) {
           const insertedProduct = mapDbProductToProduct(data[0]);
           setProducts((prev) => prev.map((p) => (p.id === tempId ? insertedProduct : p)));
         }
       } catch (err) {
         console.error("Error inserting product into Supabase:", err);
+        setProducts(prev => prev.filter(p => p.id !== tempId));
+        throw err;
       }
     } else {
       try {
@@ -525,6 +565,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
+    const previous = products.find(product => product.id === id);
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updatedFields } : p)));
 
     if (isSupabaseConfigured) {
@@ -536,6 +577,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (updatedFields.originalPrice !== undefined) updateRow.original_price = updatedFields.originalPrice;
         if (updatedFields.category) updateRow.category_name = updatedFields.category;
         if (updatedFields.stock !== undefined) updateRow.stock = updatedFields.stock;
+        if (updatedFields.sizeStock) updateRow.size_stock = updatedFields.sizeStock;
+        if (updatedFields.colorImages) updateRow.color_images = updatedFields.colorImages;
         if (updatedFields.sizes) updateRow.sizes = updatedFields.sizes;
         if (updatedFields.colors) updateRow.colors = updatedFields.colors;
         if (updatedFields.lifestyleTags) updateRow.lifestyle_tags = updatedFields.lifestyleTags;
@@ -543,10 +586,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (updatedFields.isLatest !== undefined) updateRow.is_latest = updatedFields.isLatest;
         if (updatedFields.isFeatured !== undefined) updateRow.is_featured = updatedFields.isFeatured;
 
-        await supabase.from("products").update(updateRow).eq("id", id);
+        const { error } = await supabase.from("products").update(updateRow).eq("id", id);
+        if (error) throw new Error(error.message);
       } catch (err) {
         console.error("Error updating product in Supabase:", err);
+        if (previous) setProducts(prev => prev.map(product => product.id === id ? previous : product));
+        throw err;
       }
+    } else {
+      localStorage.setItem("ks_products", JSON.stringify(products.map(product => product.id === id ? { ...product, ...updatedFields } : product)));
     }
   };
 
@@ -592,6 +640,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateCategory = async (id: string, fields: Partial<Category>) => {
+    if (isSupabaseConfigured) {
+      const row = { name: fields.name, image_url: fields.imageUrl };
+      const { error } = await supabase.from("categories").update(row).eq("id", id);
+      if (error) throw new Error(error.message);
+    }
+    const updated = categories.map(category => category.id === id ? { ...category, ...fields } : category);
+    if (!isSupabaseConfigured) localStorage.setItem("ks_categories", JSON.stringify(updated));
+    setCategories(updated);
+  };
+
   // Admin Banner Actions
   const addBanner = async (bannerData: Omit<Banner, "id">) => {
     const tempBanner: Banner = { ...bannerData, id: "banner-" + Date.now() };
@@ -606,6 +665,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               title: bannerData.title,
               subtitle: bannerData.subtitle,
               image_url: bannerData.imageUrl,
+              ...(bannerData.mobileImageUrl ? { mobile_image_url: bannerData.mobileImageUrl } : {}),
               cta_text: bannerData.ctaText,
               cta_link: bannerData.ctaLink,
               is_active: bannerData.isActive,
@@ -618,13 +678,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!error && data && data[0]) {
           setBanners((prev) => prev.map((b) => (b.id === tempBanner.id ? mapDbBannerToBanner(data[0]) : b)));
         }
+        if (error) throw new Error(error.message);
       } catch (err) {
         console.error("Error adding banner to Supabase:", err);
+        setBanners(prev => prev.filter(b => b.id !== tempBanner.id));
+        throw err;
       }
     }
   };
 
   const updateBanner = async (id: string, fields: Partial<Banner>) => {
+    const previous = banners.find(b => b.id === id);
     setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...fields } : b)));
     if (isSupabaseConfigured) {
       try {
@@ -632,11 +696,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (fields.isActive !== undefined) updateObj.is_active = fields.isActive;
         if (fields.title) updateObj.title = fields.title;
         if (fields.imageUrl) updateObj.image_url = fields.imageUrl;
+        if (fields.mobileImageUrl !== undefined) updateObj.mobile_image_url = fields.mobileImageUrl || null;
+        if (fields.subtitle !== undefined) updateObj.subtitle = fields.subtitle;
+        if (fields.ctaText !== undefined) updateObj.cta_text = fields.ctaText;
+        if (fields.ctaLink !== undefined) updateObj.cta_link = fields.ctaLink;
         if (fields.textAlign) updateObj.text_align = fields.textAlign;
         if (fields.textColor) updateObj.text_color = fields.textColor;
-        await supabase.from("banners").update(updateObj).eq("id", id);
+        const { error } = await supabase.from("banners").update(updateObj).eq("id", id);
+        if (error) throw new Error(error.message);
       } catch (err) {
         console.error("Error updating banner in Supabase:", err);
+        if (previous) setBanners(prev => prev.map(b => b.id === id ? previous : b));
+        throw err;
       }
     }
   };
@@ -654,38 +725,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Order Actions
   const addOrder = async (orderData: Omit<Order, "id" | "orderNumber" | "createdAt">): Promise<Order> => {
-    const orderNum = "KS-" + Math.floor(10000 + Math.random() * 90000);
-    const newOrder: Order = {
-      ...orderData,
-      id: "ord-" + Date.now(),
-      orderNumber: orderNum,
-      createdAt: new Date().toISOString(),
-    };
-
-    setOrders((prev) => [newOrder, ...prev]);
-    clearCart();
-
+    let newOrder: Order;
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from("orders").insert([
-          {
-            order_number: orderNum,
-            customer_name: orderData.customerName,
-            customer_email: orderData.customerEmail,
-            customer_phone: orderData.customerPhone,
-            shipping_address: orderData.shippingAddress,
-            city: orderData.city,
-            postal_code: orderData.postalCode,
-            total_amount: orderData.totalAmount,
-            status: "Pending",
-            items: orderData.items,
-            ip_address: orderData.ipAddress,
-          },
-        ]);
-      } catch (err) {
-        console.error("Error adding order to Supabase:", err);
-      }
+      const { data, error } = await supabase.rpc("place_order_with_stock", { order_data: orderData });
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("Order was not saved. Please try again.");
+      newOrder = mapDbOrderToOrder(data);
+      const { data: refreshed } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+      if (refreshed) setProducts(refreshed.map(mapDbProductToProduct));
+    } else {
+      const updated = reduceInventory(products, orderData.items);
+      newOrder = { ...orderData, id: "ord-" + Date.now(), orderNumber: "KS-" + Date.now(), createdAt: new Date().toISOString() };
+      localStorage.setItem("ks_products", JSON.stringify(updated));
+      localStorage.setItem("ks_orders", JSON.stringify([newOrder, ...orders]));
+      setProducts(updated);
     }
+    setOrders(prev => [newOrder, ...prev]);
+    clearCart();
     return newOrder;
   };
 
@@ -949,6 +1005,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         isCartDrawerOpen,
         ipAddress,
         isLoading,
+        isBannerLoading,
         toastMessage,
         showToast,
         hideToast,
@@ -968,6 +1025,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         updateCartQty,
         clearCart,
+        acceptPaidOrder,
         getCartTotal,
         getCartItemCount,
 
@@ -980,6 +1038,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         deleteProduct,
 
         addCategory,
+        updateCategory,
         deleteCategory,
 
         addBanner,

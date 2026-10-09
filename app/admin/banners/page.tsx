@@ -17,6 +17,9 @@ export default function AdminBannersPage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [bannerImages, setBannerImages] = useState<string[]>([]);
+  const [mobileImages, setMobileImages] = useState<string[]>([]);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [ctaText, setCtaText] = useState("EXPLORE COLLECTION");
   const [ctaLink, setCtaLink] = useState("/shop");
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right">("left");
@@ -28,6 +31,8 @@ export default function AdminBannersPage() {
     setTitle("");
     setSubtitle("");
     setBannerImages([]);
+    setMobileImages([]);
+    setSaveError("");
     setCtaText("EXPLORE COLLECTION");
     setCtaLink("/shop");
     setTextAlign("left");
@@ -41,6 +46,8 @@ export default function AdminBannersPage() {
     setTitle(banner.title);
     setSubtitle(banner.subtitle || "");
     setBannerImages(banner.imageUrl ? [banner.imageUrl] : []);
+    setMobileImages(banner.mobileImageUrl ? [banner.mobileImageUrl] : []);
+    setSaveError("");
     setCtaText(banner.ctaText || "EXPLORE COLLECTION");
     setCtaLink(banner.ctaLink || "/shop");
     setTextAlign(banner.textAlign || "left");
@@ -53,11 +60,15 @@ export default function AdminBannersPage() {
     e.preventDefault();
     if (!title || bannerImages.length === 0) return;
 
+    setSaving(true);
+    setSaveError("");
+    try {
     if (editingBannerId) {
       await updateBanner(editingBannerId, {
         title,
         subtitle,
         imageUrl: bannerImages[0],
+        mobileImageUrl: mobileImages[0] || "",
         ctaText,
         ctaLink,
         textAlign,
@@ -69,6 +80,7 @@ export default function AdminBannersPage() {
         title,
         subtitle,
         imageUrl: bannerImages[0],
+        mobileImageUrl: mobileImages[0] || "",
         ctaText,
         ctaLink,
         isActive,
@@ -79,6 +91,11 @@ export default function AdminBannersPage() {
     }
 
     setIsModalOpen(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Could not save banner. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -88,11 +105,11 @@ export default function AdminBannersPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <AdminHeader title="Home Page Hero Banners Management" />
 
-        <main className="p-8 space-y-6">
-          <div className="flex justify-between items-center bg-ivory p-4 border border-ivory-300">
+        <main className="p-4 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center bg-ivory p-4 border border-ivory-300">
             <div>
               <h2 className="font-serif text-xl text-ink uppercase" suppressHydrationWarning>Home Hero Banners ({banners.length})</h2>
-              <p className="text-xs text-ink-muted">Manage homepage image slider banners, text alignments, and colors.</p>
+              <p className="text-xs text-ink-muted">Manage homepage image slider banners, text alignments, and colors. Upload landscape images at 1600 × 500 px and mobile images at 800 × 1000 px.</p>
             </div>
             <button
               onClick={handleOpenAdd}
@@ -109,12 +126,12 @@ export default function AdminBannersPage() {
                 key={b.id}
                 className="bg-ivory border border-ivory-300 overflow-hidden shadow-sm flex flex-col justify-between"
               >
-                <div className="relative h-60 w-full bg-ink">
+                <div className="relative aspect-[1600/500] w-full bg-ink">
                   <Image
                     src={b.imageUrl}
                     alt={b.title}
                     fill
-                    className="object-cover opacity-75"
+                    className="object-cover object-top opacity-75"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
                   <div
@@ -373,18 +390,18 @@ export default function AdminBannersPage() {
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-ink mb-1">
                         Live Widescreen Banner Preview
                       </label>
-                      <div className="relative aspect-[16/9] w-full bg-ink border-2 border-gold overflow-hidden shadow-lg group">
+                      <div className="relative aspect-[1600/500] w-full bg-ink border-2 border-gold overflow-hidden shadow-lg group">
                         {bannerImages[0] ? (
                           <Image
                             src={bannerImages[0]}
                             alt="Banner Preview"
                             fill
-                            className="object-cover opacity-80"
+                            className="object-cover object-top opacity-80"
                           />
                         ) : (
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-ivory-400 p-4 text-center">
                             <span className="text-xs uppercase tracking-widest text-gold font-mono">No Image Uploaded Yet</span>
-                            <span className="text-[10px] text-ivory-500 mt-1">Upload a landscape photo below</span>
+                            <span className="text-[10px] text-ivory-500 mt-1">Upload a 1600 × 500 px banner below</span>
                           </div>
                         )}
 
@@ -421,17 +438,26 @@ export default function AdminBannersPage() {
                       </div>
                     </div>
 
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest mb-2">Mobile Preview — 800 × 1000 px</p>
+                      <div className="relative aspect-[4/5] w-40 mx-auto bg-ink border border-gold overflow-hidden">
+                        {(mobileImages[0] || bannerImages[0]) ? <Image src={mobileImages[0] || bannerImages[0]} alt="Mobile banner preview" fill sizes="160px" className="object-cover object-top" /> : <p className="p-4 text-xs text-ivory">Upload a mobile photo below</p>}
+                      </div>
+                    </div>
+                    <ImageUploader images={mobileImages} onChange={setMobileImages} single={true} noOptimize={true} label="Mobile Banner — 800 × 1000 px (optional)" />
+                    <p className="text-xs text-ink-muted">Mobile uses the landscape image when no mobile photo is uploaded.</p>
                     {/* Image Uploader (Raw Original Quality - No Optimization) */}
                     <ImageUploader
                       images={bannerImages}
                       onChange={setBannerImages}
                       single={true}
                       noOptimize={true}
-                      label="Banner High-Res Original Image (Raw Original File — No Optimization)"
+                      label="Landscape Banner — 1600 × 500 px"
                     />
                   </div>
                 </div>
 
+                {saveError && <p role="alert" className="text-sm text-crimson">{saveError}</p>}
                 {/* Bottom Action Row */}
                 <div className="pt-4 border-t border-ivory-300 flex items-center justify-end space-x-4">
                   <button
@@ -442,10 +468,10 @@ export default function AdminBannersPage() {
                     Cancel
                   </button>
                   <button
-                    type="submit"
+                    type="submit" disabled={saving}
                     className="px-8 py-3 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.2em] font-semibold shadow-lg transition-colors flex items-center space-x-2"
                   >
-                    <span>{editingBannerId ? "Save Banner Changes" : "Create Hero Banner"}</span>
+                    <span>{saving ? "Saving…" : editingBannerId ? "Save Banner Changes" : "Create Hero Banner"}</span>
                   </button>
                 </div>
               </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,12 +17,18 @@ import {
   ArrowLeft,
   Shield,
   Ticket,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { logout, currentUser } = useStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (mobileOpen) { dialog.current?.showModal(); const previous = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { dialog.current?.close(); document.body.style.overflow = previous; }; } }, [mobileOpen]);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -31,7 +37,8 @@ export default function AdminSidebar() {
   const links = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Categories", href: "/admin/categories", icon: Grid },
-    { name: "Products & Stock", href: "/admin/products", icon: ShoppingBag },
+    { name: "Products", href: "/admin/products", icon: ShoppingBag },
+    { name: "Inventory", href: "/admin/inventory", icon: ClipboardList },
     { name: "Order Listing", href: "/admin/orders", icon: ClipboardList },
     { name: "Hero Banners", href: "/admin/banners", icon: ImageIcon },
     { name: "Coupons & Offers", href: "/admin/coupons", icon: Ticket },
@@ -39,8 +46,8 @@ export default function AdminSidebar() {
     { name: "Instagram Links", href: "/admin/instagram", icon: Instagram },
   ];
 
-  return (
-    <aside className="sticky top-0 h-screen w-64 flex-shrink-0 bg-ink text-ivory flex flex-col justify-between border-r border-gold/30 z-40 overflow-y-auto">
+  const panel = (
+    <aside className="hidden lg:flex sticky top-0 h-screen w-64 flex-shrink-0 bg-ink text-ivory flex-col justify-between border-r border-gold/30 z-40 overflow-y-auto">
       <div>
         {/* Brand Header */}
         <div className="p-6 border-b border-ink-light bg-ink-light/40 sticky top-0 bg-ink z-10">
@@ -63,11 +70,12 @@ export default function AdminSidebar() {
         <nav className="p-4 space-y-1 text-xs uppercase tracking-[0.15em] font-sans">
           {links.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href;
+            const isActive = pathname === link.href || pathname?.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={() => setMobileOpen(false)}
                 className={`flex items-center space-x-3 px-4 py-3 rounded transition-colors ${
                   isActive
                     ? "bg-crimson text-ivory font-semibold shadow-sm"
@@ -107,4 +115,5 @@ export default function AdminSidebar() {
       </div>
     </aside>
   );
+  return <>{panel}<button type="button" aria-label="Open admin navigation" aria-haspopup="dialog" onClick={() => setMobileOpen(true)} className="lg:hidden fixed left-3 top-3 z-40 bg-ivory rounded-lg p-2.5 border border-ivory-300"><Menu className="w-5 h-5" /></button><dialog ref={dialog} aria-label="Admin navigation" onCancel={() => setMobileOpen(false)} onClose={() => setMobileOpen(false)} onClick={event => { if(event.target === event.currentTarget) setMobileOpen(false); }} className="admin-nav-dialog fixed inset-y-0 left-0 right-auto m-0 w-[min(85vw,320px)] h-dvh max-h-none p-0 bg-ink border-0 backdrop:bg-ink/60"><button type="button" aria-label="Close admin navigation" onClick={() => setMobileOpen(false)} className="absolute right-2 top-2 z-50 p-2 text-ivory"><X className="w-5 h-5" /></button>{panel}</dialog></>;
 }

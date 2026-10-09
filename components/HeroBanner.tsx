@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function HeroBanner() {
-  const { banners, isLoading } = useStore();
+  const { banners, isBannerLoading } = useStore();
   const activeBanners = banners.filter((b) => b.isActive);
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -19,9 +19,9 @@ export default function HeroBanner() {
     return () => clearInterval(interval);
   }, [activeBanners.length]);
 
-  if (isLoading || activeBanners.length === 0) {
+  if (isBannerLoading || activeBanners.length === 0) {
     return (
-      <div className="relative w-full h-[52vh] sm:h-[62vh] lg:h-[70vh] min-h-[380px] sm:min-h-[460px] max-h-[640px] bg-[#2B0B14] overflow-hidden flex flex-col items-center justify-center text-center p-6 space-y-4 border-b-2 border-gold/40 animate-pulse z-0">
+      <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[1600/500] bg-[#2B0B14] overflow-hidden flex flex-col items-center justify-center text-center p-6 space-y-4 border-b-2 border-gold/40 animate-pulse z-0">
         <div className="w-16 h-16 rounded-full border-2 border-gold/40 p-1 bg-[#2B0B14]">
           <div className="w-full h-full rounded-full bg-gold/20" />
         </div>
@@ -32,7 +32,15 @@ export default function HeroBanner() {
     );
   }
 
-  const banner = activeBanners[currentIdx];
+  const banner = activeBanners[currentIdx % activeBanners.length];
+  const { props: landscapeProps } = getImageProps({
+    src: banner.imageUrl, alt: banner.title, fill: true,
+    sizes: "100vw", quality: 85, priority: true,
+  });
+  const { props: mobileProps } = getImageProps({
+    src: banner.mobileImageUrl || banner.imageUrl, alt: banner.title, fill: true,
+    sizes: "100vw", quality: 85, priority: true,
+  });
   const textAlign = banner.textAlign?.toLowerCase() || "left";
 
   const desktopAlignClass =
@@ -58,46 +66,38 @@ export default function HeroBanner() {
   };
 
   return (
-    <div data-home-hero className="relative w-full h-[52vh] sm:h-[62vh] lg:h-[70vh] min-h-[380px] sm:min-h-[460px] max-h-[640px] bg-ink overflow-hidden group">
+    <div data-home-hero className="relative w-full bg-ink overflow-hidden group">
       {/* Background Banner Image & Dark Vignette Overlay */}
-      <div className="hero-drift absolute inset-0 transition-opacity duration-1000 ease-in-out">
-        <Image
-          src={banner.imageUrl}
-          alt={banner.title}
-          fill
-          priority
-          sizes="100vw"
-          quality={85}
-          className="object-cover object-center opacity-75 scale-105 transform transition-transform duration-[8000ms]"
-        />
+      <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[1600/500]">
+        <picture>
+          <source media="(max-width: 767px)" srcSet={mobileProps.srcSet || mobileProps.src} sizes={mobileProps.sizes} />
+          <img {...landscapeProps} className="object-cover object-top" />
+        </picture>
         {/* Dark Vignette & Gradient Overlay for Contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+        <div className={`absolute inset-0 ${textAlign === "right" ? "bg-gradient-to-l" : textAlign === "center" ? "bg-gradient-to-t" : "bg-gradient-to-r"} from-black/65 via-black/20 to-transparent`} />
       </div>
 
       {/* Hero Content Overlay (Centered on Mobile, Respects text_align on Desktop) */}
-      <div className={`relative max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-12 flex flex-col justify-end pb-8 sm:pb-12 md:pb-14 items-center text-center text-ivory ${desktopAlignClass}`}>
-        <div key={banner.id} className={`hero-entrance max-w-2xl space-y-3 sm:space-y-5 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
-          <p className="font-sans text-[11px] sm:text-xs uppercase tracking-[0.3em] text-[#E5C378] font-bold drop-shadow-md">
+      <div className={`absolute inset-0 max-w-7xl mx-auto px-7 pt-10 pb-16 md:px-16 md:py-8 lg:px-20 flex flex-col justify-end md:justify-center items-center text-center text-ivory ${desktopAlignClass}`}>
+        <div key={banner.id} className={`hero-entrance w-full max-w-[30rem] gap-4 lg:gap-5 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
+          <p className="font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-ivory/90 font-medium">
             {banner.subtitle || "KAAVU STYLES EXCLUSIVE"}
           </p>
 
           <h1
-            className="font-serif text-3xl sm:text-5xl lg:text-6xl font-light leading-tight tracking-tight uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]"
-            style={{ color: banner.textColor || "#FFFFFF" }}
+            className="font-serif text-4xl sm:text-4xl md:text-[clamp(2rem,3vw,3.5rem)] font-medium leading-[1.08] tracking-[-0.025em] text-balance"
+            style={{ color: banner.textColor || "#F8F3EC", textShadow: "0 2px 18px rgba(0,0,0,0.25)" }}
           >
-            {banner.title.split(" ").map((word, i) => (
-              <span key={i} className={i % 2 === 1 ? "text-[#E5C378] italic font-normal" : "text-white font-light"}>
-                {word}{" "}
-              </span>
-            ))}
+            {banner.title}
           </h1>
 
-          <div className={`pt-2 sm:pt-3 flex items-center justify-center space-x-6 w-full ${desktopCtaAlignClass}`}>
+          <div className={`pt-1 sm:pt-2 flex items-center justify-center w-full ${desktopCtaAlignClass}`}>
             <Link
               href={banner.ctaLink || "/shop"}
-              className="px-6 py-3 sm:px-8 sm:py-3.5 bg-crimson hover:bg-crimson-800 text-ivory text-[11px] sm:text-xs uppercase tracking-[0.24em] font-semibold transition-all shadow-luxury hover:scale-105"
+              className="inline-flex items-center gap-3 px-6 py-3.5 sm:px-6 sm:py-3 border border-ivory/60 bg-ivory/10 backdrop-blur-sm text-ivory text-[11px] uppercase tracking-[0.16em] font-medium transition-colors duration-300 hover:bg-ivory hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ivory group/cta"
             >
               {banner.ctaText || "Explore Collection"}
+              <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover/cta:translate-x-1" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function HeroBanner() {
         <>
           <button
             onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -116,7 +116,7 @@ export default function HeroBanner() {
 
           <button
             onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+            className="hidden md:block absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />

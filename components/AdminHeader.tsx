@@ -2,39 +2,47 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
-import { User, ExternalLink, Shield } from "lucide-react";
+import { ExternalLink, Shield } from "lucide-react";
 
 export default function AdminHeader({ title }: { title: string }) {
   const { currentUser } = useStore();
   const [isMounted, setIsMounted] = useState(false);
+  const pathname = usePathname();
+  const section = pathname?.split("/")[2] || "dashboard";
+  const mobileTitles: Record<string, string> = { dashboard: "Dashboard", categories: "Categories", products: "Products", inventory: "Inventory", orders: "Orders", coupons: "Coupons", banners: "Banners", attributes: "Tags, sizes & colors", instagram: "Instagram", login: "Admin login" };
+  const mobileTitle = section === "products" && pathname?.endsWith("/new") ? "Add product" : section === "products" && pathname?.endsWith("/edit") ? "Edit product" : mobileTitles[section] || title;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   return (
-    <header className="bg-ivory-200 border-b border-ivory-300 py-4 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-      <div>
-        <h1 className="font-serif text-2xl text-ink uppercase tracking-wide">
-          {title}
+    <header className="bg-ivory border-b border-ivory-300 min-h-[72px] py-3 lg:py-4 pl-16 pr-3 sm:pr-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3 sticky top-0 z-30 shadow-sm">
+      <div className="min-w-0 flex-1">
+        <h1 className="font-serif text-xl lg:text-2xl text-ink leading-tight lg:uppercase lg:tracking-wide">
+          <span className="block truncate lg:hidden" title={title}>{mobileTitle}</span>
+          <span className="hidden lg:block">{title}</span>
         </h1>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-sans font-semibold">
-          Kaavu Styles Control Center
+        <p className="text-[10px] text-gold font-sans mt-1 leading-tight lg:uppercase lg:tracking-[0.2em] lg:font-semibold">
+          <span className="lg:hidden">Kaavu Styles · Admin</span>
+          <span className="hidden lg:inline">Kaavu Styles Control Center</span>
         </p>
       </div>
 
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center gap-3 shrink-0">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center space-x-1.5 text-xs uppercase tracking-wider text-ink hover:text-crimson transition-colors"
+          aria-label="Open live storefront"
+          className="flex items-center justify-center gap-1.5 min-h-10 min-w-10 rounded-lg border border-ivory-300 lg:border-0 text-xs uppercase tracking-wider text-ink hover:text-crimson transition-colors"
         >
-          <span>Live Site</span>
+          <span className="hidden sm:inline">Live Site</span>
           <ExternalLink className="w-3.5 h-3.5 text-gold" />
         </Link>
 
-        <div className="flex items-center space-x-2 bg-ivory border border-ivory-300 px-3 py-1.5 rounded">
+        <div className="hidden lg:flex items-center space-x-2 bg-ivory border border-ivory-300 px-3 py-1.5 rounded">
           <Shield className="w-4 h-4 text-crimson" />
           <span suppressHydrationWarning className="text-xs text-ink font-medium">
             {isMounted ? currentUser?.name || "Admin User" : "Admin User"}

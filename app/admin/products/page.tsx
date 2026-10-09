@@ -3,21 +3,23 @@
 import React, { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
-import ImageUploader from "@/components/ImageUploader";
+import AdminListCard from "@/components/AdminListCard";
 import { useStore } from "@/context/StoreContext";
-import { Product } from "@/lib/mockData";
 import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
-import { Plus, Trash2, Edit, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2, Edit, Search, ChevronDown } from "lucide-react";
 
 export default function AdminProductsPage() {
-  const { products, categories, addProduct, updateProduct, deleteProduct, lifestyleTags, sizes, colors } = useStore();
+  const router = useRouter();
+  const { products, categories, deleteProduct } = useStore();
   const [search, setSearch] = useState("");
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
   const [selectedStockFilter, setSelectedStockFilter] = useState("all");
   const [isMounted, setIsMounted] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -29,23 +31,9 @@ export default function AdminProductsPage() {
   const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const outOfStockCount = products.filter((p) => p.stock <= 0).length;
 
-  // Form state
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [originalPrice, setOriginalPrice] = useState("");
-  const [category, setCategory] = useState(categories[0]?.name || "Royal Sarees");
-  const [stock, setStock] = useState("10");
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(["S", "M", "L"]);
-  const [selectedColors, setSelectedColors] = useState<string[]>(["Crimson Maroon", "Antique Gold"]);
-  const [selectedTags, setSelectedTags] = useState<string[]>(["Festive", "Ethnic"]);
-  const [productImages, setProductImages] = useState<string[]>([]);
-  const [isLatest, setIsLatest] = useState(true);
-  const [isFeatured, setIsFeatured] = useState(true);
-
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.name + " " + p.id).toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase());
     const matchesCat =
       selectedCategoryFilter === "all" ||
@@ -60,88 +48,6 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCat && matchesStock;
   });
 
-  const openAddModal = () => {
-    setEditingId(null);
-    setName("");
-    setDescription("");
-    setPrice("");
-    setOriginalPrice("");
-    setCategory(categories[0]?.name || "Royal Sarees");
-    setStock("10");
-    setSelectedSizes(["S", "M", "L"]);
-    setSelectedColors(["Crimson Maroon", "Antique Gold"]);
-    setSelectedTags(["Festive", "Ethnic"]);
-    setProductImages([]);
-    setIsLatest(true);
-    setIsFeatured(true);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (p: Product) => {
-    setEditingId(p.id);
-    setName(p.name);
-    setDescription(p.description);
-    setPrice(p.price.toString());
-    setOriginalPrice(p.originalPrice ? p.originalPrice.toString() : "");
-    setCategory(p.category);
-    setStock(p.stock.toString());
-    setSelectedSizes(p.sizes);
-    setSelectedColors(p.colors);
-    setSelectedTags(p.lifestyleTags);
-    setProductImages(p.images);
-    setIsLatest(p.isLatest);
-    setIsFeatured(p.isFeatured);
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const catObj = categories.find((c) => c.name === category);
-
-    const productPayload = {
-      name,
-      description,
-      price: parseFloat(price) || 0,
-      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
-      category,
-      categoryId: catObj?.id || "cat-1",
-      stock: parseInt(stock) || 10,
-      sizes: selectedSizes,
-      colors: selectedColors,
-      lifestyleTags: selectedTags,
-      images: productImages.length > 0 ? productImages : ["https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800"],
-      isLatest,
-      isFeatured,
-    };
-
-    if (editingId) {
-      await updateProduct(editingId, productPayload);
-    } else {
-      await addProduct(productPayload);
-    }
-
-    setIsModalOpen(false);
-  };
-
-  const toggleSize = (s: string) => {
-    setSelectedSizes((prev) =>
-      prev.includes(s) ? prev.filter((item) => item !== s) : [...prev, s]
-    );
-  };
-
-  const toggleColor = (c: string) => {
-    setSelectedColors((prev) =>
-      prev.includes(c) ? prev.filter((item) => item !== c) : [...prev, c]
-    );
-  };
-
-  const toggleTag = (t: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(t) ? prev.filter((item) => item !== t) : [...prev, t]
-    );
-  };
-
   return (
     <div className="flex min-h-screen bg-ivory-100">
       <AdminSidebar />
@@ -149,7 +55,7 @@ export default function AdminProductsPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <AdminHeader title="Products & Stock Management" />
 
-        <main className="p-8 space-y-6">
+        <main className="p-4 sm:p-8 space-y-6">
           {/* Stock Metrics Count Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-ivory border border-ivory-300 p-4 space-y-1 shadow-sm">
@@ -174,7 +80,7 @@ export default function AdminProductsPage() {
               <span className="text-[9px] text-amber-600 uppercase font-bold">Needs Reorder</span>
             </div>
             <div className="bg-rose-50/50 border border-rose-200 p-4 space-y-1 shadow-sm">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-rose-800">Out of Stock (0)</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-rose-800">Sold out (0)</span>
               <p className="font-serif text-2xl font-bold text-crimson" suppressHydrationWarning>
                 {isMounted ? outOfStockCount : 0}
               </p>
@@ -225,7 +131,7 @@ export default function AdminProductsPage() {
             </div>
 
             <button
-              onClick={openAddModal}
+              onClick={() => router.push("/admin/products/new")}
               className="px-6 py-3 bg-crimson hover:bg-crimson-800 text-ivory text-xs uppercase tracking-[0.2em] font-semibold flex items-center space-x-2 shadow-sm flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
@@ -235,7 +141,7 @@ export default function AdminProductsPage() {
 
           {/* Products Table */}
           <div className="bg-ivory border border-ivory-300 shadow-sm overflow-hidden">
-            <div className="p-3 bg-ivory-200/60 border-b border-ivory-300 flex justify-between items-center text-xs font-semibold text-ink">
+            <div className="p-3 bg-ivory-200/60 border-b border-ivory-300 flex flex-col sm:flex-row gap-3 justify-between sm:items-center text-xs font-semibold text-ink">
               <span>Showing {filteredProducts.length} of {products.length} products</span>
               {(selectedStockFilter !== "all" || selectedCategoryFilter !== "all" || search) && (
                 <button
@@ -250,23 +156,31 @@ export default function AdminProductsPage() {
                 </button>
               )}
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-ivory-300 uppercase tracking-wider text-[10px] text-ink-muted bg-ivory-200">
-                    <th className="py-3.5 px-4">Image</th>
-                    <th className="py-3.5 px-4">Product Name</th>
-                    <th className="py-3.5 px-4">Category</th>
-                    <th className="py-3.5 px-4">Price</th>
-                    <th className="py-3.5 px-4">Stock Status</th>
-                    <th className="py-3.5 px-4">Tags</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+            <div className="lg:hidden space-y-3 p-3">
+{!isMounted ? <p className="p-6 text-center text-ink-muted">Loading products…</p> : filteredProducts.length === 0 ? <p className="p-6 text-center text-ink-muted">No products match your filters.</p> : filteredProducts.map(p => <AdminListCard key={p.id} title={p.name} subtitle={p.category} badge={`${p.stock} units`} image={<div className="relative w-12 h-16 shrink-0 rounded-lg overflow-hidden bg-ivory-200"><Image src={p.images[0]} alt="" fill sizes="48px" className="object-cover" /></div>}>
+<div className="flex items-center justify-between"><span className="text-ink-muted">Price</span><span className="font-medium text-crimson">{formatPrice(p.price)}</span></div>
+<p className="text-[10px] text-ink-muted font-mono break-all">ID: {p.id}</p>
+<div><p className="text-xs text-ink-muted mb-2">Stock by size</p><div className="flex flex-wrap gap-2">{p.sizes.length ? p.sizes.map(size => <span key={size} className="bg-white border border-ivory-300 rounded-lg px-3 py-2 text-xs">{size}: {p.sizeStock ? p.sizeStock[size] ?? 0 : "Shared"}</span>) : <span className="text-xs">General stock: {p.stock}</span>}</div></div>
+<div><p className="text-xs text-ink-muted mb-2">Colors</p><div className="flex flex-wrap gap-2">{p.colors.map(color => <span key={color} className="text-xs bg-white border border-ivory-300 rounded-lg px-2 py-1">{color}</span>)}</div></div>
+<div className="flex gap-2 pt-2"><button onClick={() => router.push(`/admin/products/${p.id}/edit`)} className="flex-1 bg-crimson text-ivory rounded-lg py-3 text-xs">Edit product</button><button onClick={() => deleteProduct(p.id)} className="px-4 border border-crimson/20 text-crimson rounded-lg text-xs">Delete</button></div>
+</AdminListCard>)}
+</div><div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[760px] table-fixed text-left text-xs">
+                <colgroup>{[9, 29, 17, 11, 15, 10, 9].map((width, index) => <col key={index} style={{width: `${width}%`}} />)}</colgroup><thead>
+                  <tr className="border-b border-ivory-300 uppercase tracking-wider text-[10px] text-ink-muted bg-ivory-50">
+                    <th className="py-4 px-3">Image</th>
+                    <th className="py-4 px-3">Product Name</th>
+                    <th className="py-4 px-3">Category</th>
+                    <th className="py-4 px-3">Price</th>
+                    <th className="py-4 px-3">Stock Status</th>
+                    <th className="py-4 px-3">Tags</th>
+                    <th className="py-4 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-ivory-200">
+                <tbody className="divide-y divide-ivory-200">{filteredProducts.length === 0 && <tr><td data-label="" colSpan={7} className="py-12 text-center text-ink-muted">No products match your filters.</td></tr>}
                   {filteredProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-ivory-200/50">
-                      <td className="py-3 px-4">
+                    <React.Fragment key={p.id}><tr className="hover:bg-ivory-50">
+                      <td data-label="Image" className="py-4 px-3">
                         <div className="relative w-12 h-16 bg-ivory-200 border border-ivory-300 overflow-hidden">
                           <Image
                             src={p.images[0] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400"}
@@ -276,36 +190,35 @@ export default function AdminProductsPage() {
                           />
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="font-serif text-sm text-ink block font-medium">
-                          {p.name}
-                        </span>
+                      <td data-label="Product Name" className="py-4 px-3">
+                        <button type="button" aria-expanded={expandedProduct === p.id} onClick={() => setExpandedProduct(expandedProduct === p.id ? null : p.id)} className="flex items-center gap-2 text-sm text-ink font-medium text-left">
+                          {p.name}<ChevronDown className={`w-4 h-4 shrink-0 text-gold transition-transform ${expandedProduct === p.id ? "rotate-180" : ""}`} /></button>
                         <span className="text-[10px] text-ink-muted font-sans line-clamp-1">
-                          {p.description}
+                          {p.id}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gold uppercase tracking-wider font-semibold">
+                      <td data-label="Category" className="py-4 px-3 text-ink-muted break-words">
                         {p.category}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-crimson">
+                      <td data-label="Price" className="py-4 px-3 font-semibold text-crimson">
                         {formatPrice(p.price)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td data-label="Stock Status" className="py-4 px-3">
                         {p.stock <= 0 ? (
-                          <span className="px-2.5 py-1 bg-rose-100 text-rose-800 border border-rose-300 text-[10px] rounded font-bold uppercase tracking-wider">
+                          <span className="px-2.5 py-1 bg-rose-100 text-rose-800 border border-rose-300 text-[10px] rounded-full font-medium whitespace-nowrap">
                             Out of Stock
                           </span>
                         ) : p.stock <= 5 ? (
                           <span className="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] rounded font-bold uppercase tracking-wider">
-                            Low Stock ({p.stock})
+                            Low · {p.stock}
                           </span>
                         ) : (
                           <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] rounded font-bold uppercase tracking-wider">
-                            In Stock ({p.stock})
+                            {p.stock} available
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td data-label="Tags" className="py-4 px-3">
                         <div className="flex flex-wrap gap-1">
                           {p.lifestyleTags.map((t) => (
                             <span key={t} className="text-[9px] bg-ivory-200 px-1.5 py-0.5 border">
@@ -314,10 +227,10 @@ export default function AdminProductsPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td data-label="Actions" className="py-4 px-3 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <button
-                            onClick={() => openEditModal(p)}
+                            onClick={() => router.push(`/admin/products/${p.id}/edit`)}
                             className="p-1.5 text-ink hover:text-crimson border border-ivory-300 rounded"
                             title="Edit Product"
                           >
@@ -333,7 +246,8 @@ export default function AdminProductsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+{expandedProduct === p.id && <tr className="bg-ivory-50"><td data-label="" colSpan={7} className="px-6 py-5"><div className="flex flex-wrap gap-8"><div><p className="text-[10px] uppercase tracking-wider text-ink-muted mb-2">Stock by size</p><div className="flex flex-wrap gap-2">{p.sizes.length ? p.sizes.map(size => <span key={size} className="bg-white border border-ivory-300 rounded-lg px-3 py-2">{size}: {p.sizeStock ? p.sizeStock[size] ?? 0 : "Shared"}</span>) : <span>{p.stock} units · General stock</span>}</div></div><div><p className="text-[10px] uppercase tracking-wider text-ink-muted mb-2">Color photos</p><div className="flex flex-wrap gap-2">{p.colors.map(color => <span key={color} className="bg-white border border-ivory-300 rounded-lg px-3 py-2">{color} · {p.colorImages?.[color]?.length || 0} photos</span>)}</div></div></div></td></tr>}
+</React.Fragment>))}
                 </tbody>
               </table>
             </div>
@@ -341,211 +255,6 @@ export default function AdminProductsPage() {
         </main>
       </div>
 
-      {/* Add / Edit Product Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-ivory rounded-none border border-gold shadow-2xl p-6 space-y-6 my-8">
-            <div className="flex justify-between items-center border-b border-ivory-300 pb-3">
-              <h3 className="font-serif text-2xl text-ink uppercase">
-                {editingId ? "Edit Product" : "Add New Product"}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-ink hover:text-crimson">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2 text-xs">
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Product Name / Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Kanjeevaram Crimson Silk Saree"
-                  className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none focus:border-gold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Description
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Crafting details, weave type, silk purity..."
-                  className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none focus:border-gold"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                    Price (INR ₹)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                    Original Price (MRP)
-                  </label>
-                  <input
-                    type="number"
-                    value={originalPrice}
-                    onChange={(e) => setOriginalPrice(e.target.value)}
-                    className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                    Stock Quantity
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Category
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-ivory-300 rounded p-2.5 text-xs text-ink outline-none uppercase"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sizes Selection */}
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Available Sizes
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((sz) => (
-                    <button
-                      key={sz.id}
-                      type="button"
-                      onClick={() => toggleSize(sz.code)}
-                      className={`px-3 py-1 text-xs border rounded ${
-                        selectedSizes.includes(sz.code)
-                          ? "bg-crimson text-ivory border-crimson font-semibold"
-                          : "bg-ivory border-ivory-300 text-ink"
-                      }`}
-                    >
-                      {sz.code}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Lifestyle Tags Selection */}
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Lifestyle Tags
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {lifestyleTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => toggleTag(tag.name)}
-                      className={`px-3 py-1 text-xs border rounded ${
-                        selectedTags.includes(tag.name)
-                          ? "bg-gold text-ivory border-gold font-semibold"
-                          : "bg-ivory border-ivory-300 text-ink"
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Colors Selection */}
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-                  Available Colors
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((col) => (
-                    <button
-                      key={col.id}
-                      type="button"
-                      onClick={() => toggleColor(col.name)}
-                      className={`px-3 py-1 text-xs border rounded ${
-                        selectedColors.includes(col.name)
-                          ? "bg-ink text-ivory border-ink font-semibold"
-                          : "bg-ivory border-ivory-300 text-ink"
-                      }`}
-                    >
-                      {col.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* IMAGE FILE UPLOADER (No raw URL typing required!) */}
-              <ImageUploader
-                images={productImages}
-                onChange={setProductImages}
-                label="Product Images (Select Image Files from Device)"
-              />
-
-              <div className="flex items-center space-x-6 pt-2">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isLatest}
-                    onChange={(e) => setIsLatest(e.target.checked)}
-                    className="accent-crimson"
-                  />
-                  <span>Mark as New Arrival</span>
-                </label>
-
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isFeatured}
-                    onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="accent-crimson"
-                  />
-                  <span>Feature on Home Page</span>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 bg-crimson text-ivory text-xs uppercase tracking-[0.24em] font-semibold shadow-md mt-4 hover:bg-crimson-800 transition-all"
-              >
-                {editingId ? "Save Product Changes to Supabase" : "Create Product Now in Supabase"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

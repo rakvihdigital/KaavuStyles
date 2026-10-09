@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+.admin-nav-dialog aside { display: flex; position: static; width: 100%; height: 100dvh; }
+
+@media screen and (max-width: 1023px) {
+  .admin-responsive main { padding: 1rem; }
+  .admin-responsive table { display: block; width: 100%; min-width: 0 !important; }
+  .admin-responsive table colgroup { display: none; }
+  .admin-responsive table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .admin-responsive table tbody { display: block; padding: .75rem; }
+  .admin-responsive table tbody > tr { display: block; margin-bottom: .75rem; border: 1px solid var(--line); border-radius: .75rem; padding: .5rem; background: white; }
+  .admin-responsive table tbody > tr { box-shadow: 0 3px 12px rgba(43, 26, 31, .04); }
+  .admin-responsive table td + td { border-top: 1px solid #F0E6D9; }
+  .admin-responsive table td[data-label="Image"] { display: block; padding-bottom: .75rem; }
+  .admin-responsive table td[data-label="Image"]::before { display: none; }
+  .admin-responsive table td[data-label="Product Name"] { display: block; }
+  .admin-responsive table td[data-label="Product Name"]::before { display: none; }
+  .admin-responsive table td[data-label="Actions"] { grid-template-columns: 1fr 1fr; }
+  .admin-responsive table td { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); align-items: center; gap: .75rem; width: 100%; padding: .65rem .5rem; white-space: normal; overflow-wrap: anywhere; text-align: left; }
+  .admin-responsive table td::before { content: attr(data-label); font-size: 10px; color: var(--ink); font-weight: 500; }
+  .admin-responsive table td[colspan], .admin-responsive table td[data-label=""] { display: block; }
+  .admin-responsive table td[colspan]::before, .admin-responsive table td[data-label=""]::before { display: none; }
+  .admin-responsive table td > * { min-width: 0; max-width: 100%; }
+  .admin-responsive table td button, .admin-responsive table td a { min-height: 36px; }
+  .admin-responsive table td .truncate { white-space: normal; }
+  .admin-responsive input, .admin-responsive select, .admin-responsive textarea { max-width: 100%; min-width: 0; font-size: 16px; }
+  .admin-responsive [role="dialog"] { max-height: 90dvh; overflow-y: auto; }
+  .admin-responsive main > .grid { gap: .75rem; }
+}
+
 @layer base {
   :root {
     --bg-ivory: #F8F3EC;

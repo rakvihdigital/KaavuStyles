@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ProductSearch from "@/components/ProductSearch";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import {
@@ -57,13 +58,13 @@ export default function Navbar() {
   if (isAdminPage) return null;
 
   return (
-    <header className="sticky top-0 z-50 bg-ivory shadow-luxury border-b border-gold/30 transition-all">
+    <header className="sticky top-0 z-50 shrink-0 bg-ivory shadow-luxury border-b border-gold/30 transition-all">
       {/* 1. TOP ANNOUNCEMENT BAR (DYNAMIC SCROLLING MARQUEE) */}
-      <div className="bg-[#2B0B14] text-ivory py-1.5 overflow-hidden text-[11px] font-sans tracking-wide border-b border-gold/30">
+      {isMounted && navbarCoupons.length > 0 && <div className="bg-[#2B0B14] text-ivory py-1.5 overflow-hidden text-[11px] font-sans tracking-wide border-b border-gold/30">
         <div className="animate-marquee whitespace-nowrap flex items-center space-x-6 sm:space-x-8 font-medium">
           {[1, 2, 3, 4, 5, 6].map((group) => (
             <React.Fragment key={group}>
-              {isMounted && navbarCoupons.length > 0 ? (
+              {
                 navbarCoupons.map((c) => (
                   <React.Fragment key={`${group}-${c.id}`}>
                     <div className="flex items-center space-x-2.5">
@@ -75,18 +76,11 @@ export default function Navbar() {
                     <span className="text-[#E5C378]/60">•</span>
                   </React.Fragment>
                 ))
-              ) : (
-                <div className="flex items-center space-x-2.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#E5C378] flex-shrink-0 animate-pulse" />
-                  <span className="text-[#E5C378] font-medium">Enjoy 10% Off on Orders Above ₹999/- Use coupon Code- KAAVU10</span>
-
-                  <span className="text-[#E5C378]/60 pl-3">•</span>
-                </div>
-              )}
+              }
             </React.Fragment>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* 2. MAIN NAVIGATION ROW */}
       <div className="w-full px-4 sm:px-6 lg:px-12">
@@ -154,6 +148,7 @@ export default function Navbar() {
 
           {/* ACTION ICONS: WISHLIST, CART ICON, PROFILE DROPDOWN */}
           <div className="hidden lg:flex items-center space-x-5">
+            <ProductSearch />
             {/* Wishlist Icon */}
             <Link
               href="/wishlist"
@@ -260,14 +255,16 @@ export default function Navbar() {
 
           {/* MOBILE ACTIONS: DIRECT LOGIN BUTTON OR PROFILE ICON WITH NAME */}
           <div className="flex items-center space-x-2.5 lg:hidden" ref={mobileDropdownRef}>
+            <ProductSearch />
             {isMounted && currentUser ? (
               <div className="relative">
                 <button
                   onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-burgundy text-ivory border border-gold rounded-full text-xs font-semibold uppercase tracking-wider shadow-sm cursor-pointer"
+                  aria-label="Open profile menu" aria-expanded={mobileProfileOpen}
+                  className="flex items-center gap-1 p-2 bg-burgundy text-ivory border border-gold rounded-full shadow-sm"
                 >
                   <UserIcon className="w-3.5 h-3.5 text-gold flex-shrink-0" />
-                  <span className="max-w-[85px] truncate font-sans text-[11px]">{currentUser.name}</span>
+                  
                   <ChevronDown className={`w-3 h-3 text-gold transition-transform duration-200 ${mobileProfileOpen ? "rotate-180" : ""}`} />
                 </button>
 
@@ -310,14 +307,16 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <button
-                onClick={openAuthModal}
-                className="px-3.5 py-1.5 bg-burgundy hover:bg-burgundy-600 text-ivory border border-gold rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 shadow-sm cursor-pointer"
-                title="Login / Account"
-              >
-                <UserIcon className="w-3.5 h-3.5 text-gold" />
-                <span>Login</span>
-              </button>
+              <div className="relative">
+                <button type="button" aria-label="Open profile menu" aria-expanded={mobileProfileOpen} onClick={() => setMobileProfileOpen(!mobileProfileOpen)} className="flex items-center gap-1 p-2 bg-burgundy text-ivory border border-gold rounded-full shadow-sm">
+                  <UserIcon className="w-4 h-4 text-gold" />
+                  <ChevronDown className={`w-3 h-3 text-gold transition-transform ${mobileProfileOpen ? "rotate-180" : ""}`} />
+                </button>
+                {mobileProfileOpen && <div className="absolute right-0 mt-2 w-48 bg-ivory border border-gold shadow-xl p-2 z-50">
+                  <p className="px-3 py-2 font-serif text-lg">Welcome to Kaavu</p>
+                  <button type="button" onClick={() => { setMobileProfileOpen(false); openAuthModal(); }} className="w-full text-left px-3 py-3 text-xs text-crimson hover:bg-ivory-200">Sign in / Register</button>
+                </div>}
+              </div>
             )}
           </div>
         </div>

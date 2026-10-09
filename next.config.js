@@ -4,7 +4,7 @@ const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
 const nextConfig = {
   webpack(config, { dev }) {
     // Avoid missing webpack pack files on Windows during development.
-    if (dev) config.cache = false;
+    if (dev) config.cache = { type: 'memory' };
     return config;
   },
   images: {

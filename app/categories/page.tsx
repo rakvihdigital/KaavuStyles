@@ -3,11 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import CategorySkeleton from "@/components/CategorySkeleton";
 import { useStore } from "@/context/StoreContext";
 import { Sparkles, ChevronRight, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function CategoriesPage() {
-  const { categories, products } = useStore();
+  const { categories, products, isLoading } = useStore();
 
   // Calculate product count for each category
   const getCategoryCount = (catObj: any) => {
@@ -59,12 +60,12 @@ export default function CategoriesPage() {
             </h2>
           </div>
           <span className="text-xs text-ink-muted uppercase tracking-widest font-semibold">
-            {categories.length} Total Categories
+            {isLoading ? "Loading collections…" : `${categories.length} Total Categories`}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-          {categories.map((category) => {
+        <div aria-busy={isLoading} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          {isLoading ? Array.from({ length: 8 }, (_, index) => <CategorySkeleton key={index} />) : categories.length === 0 ? <p className="col-span-full py-12 text-center text-ink-muted">No collections available yet. Please check back soon.</p> : categories.map((category) => {
             const count = getCategoryCount(category);
             return (
               <Link

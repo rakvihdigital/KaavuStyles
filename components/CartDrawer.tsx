@@ -35,8 +35,7 @@ export default function CartDrawer() {
   const subtotal = getCartTotal();
   const discount = getDiscountAmount();
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const gstAmount = discountedSubtotal * 0.18;
-  const grandTotal = discountedSubtotal * 1.18;
+  const grandTotal = discountedSubtotal;
 
   const handleApplyCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,27 +241,8 @@ export default function CartDrawer() {
               )}
             </div>
 
-            <div className="space-y-2 text-xs uppercase tracking-wider border-b border-ivory-300 pb-3">
-              <div className="flex items-center justify-between text-ink">
-                <span>Subtotal</span>
-                <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
-              </div>
-
-              {discount > 0 && (
-                <div className="flex items-center justify-between text-emerald-700 font-bold">
-                  <span>Coupon Discount ({appliedCoupon?.code})</span>
-                  <span>-{formatPrice(discount)}</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-ink-muted">
-                <span>Estimated GST (18%)</span>
-                <span className="font-semibold text-gold">{formatPrice(gstAmount)}</span>
-              </div>
-            </div>
-
             <div className="flex items-center justify-between uppercase tracking-wider">
-              <span className="text-xs font-bold text-ink">Total (Incl. 18% GST)</span>
+              <span className="text-xs font-bold text-ink">Total</span>
               <span className="font-serif text-2xl text-crimson font-bold">
                 {formatPrice(grandTotal)}
               </span>

@@ -34,8 +34,8 @@ export default function AdminInstagramPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <AdminHeader title="Instagram Feed & Links Configuration" />
 
-        <main className="p-8 space-y-6">
-          <div className="flex justify-between items-center bg-ivory p-4 border border-ivory-300">
+        <main className="p-4 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center bg-ivory p-4 border border-ivory-300">
             <div>
               <h2 className="font-serif text-xl text-ink uppercase">Instagram Posts Feed ({instagramPosts.length})</h2>
               <p className="text-xs text-ink-muted">Manage Instagram post URLs, image previews, and captions for homepage feed.</p>
@@ -114,8 +114,8 @@ export default function AdminInstagramPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-ivory rounded-none border border-gold shadow-2xl p-6 space-y-6">
-            <div className="flex justify-between items-center border-b border-ivory-300 pb-3">
+          <div className="relative w-full max-w-md bg-ivory rounded-none border border-gold shadow-2xl p-5 sm:p-6 space-y-6 max-h-[90dvh] overflow-y-auto">
+            <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center border-b border-ivory-300 pb-3">
               <h3 className="font-serif text-2xl text-ink uppercase">Add Instagram Post</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-ink hover:text-crimson">
                 <X className="w-5 h-5" />

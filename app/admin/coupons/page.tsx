@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/AdminHeader";
+import AdminListCard from "@/components/AdminListCard";
 import { useStore } from "@/context/StoreContext";
 import { Coupon } from "@/lib/mockData";
 import { formatPrice } from "@/lib/utils";
@@ -177,48 +178,56 @@ export default function AdminCouponsPage() {
 
           {/* Coupons Listing Table */}
           <div className="bg-ivory border border-ivory-300 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="lg:hidden space-y-3 p-3">
+{!isMounted ? <p className="p-6 text-center text-ink-muted">Loading coupons…</p> : coupons.length === 0 ? <p className="p-6 text-center text-ink-muted">No coupons yet.</p> : coupons.map(c => <AdminListCard key={c.id} title={c.code} subtitle={c.description || 'Discount offer'} badge={c.isActive ? 'Active' : 'Inactive'}>
+<p className="text-sm text-ink-muted">{c.description}</p><div className="grid grid-cols-2 gap-3"><div className="rounded-lg bg-white border border-ivory-300 p-3"><p className="text-xs text-ink-muted">Discount</p><p className="mt-1 font-medium text-crimson">{c.discountType === 'percentage' ? `${c.discountValue}%` : formatPrice(c.discountValue)}</p></div><div className="rounded-lg bg-white border border-ivory-300 p-3"><p className="text-xs text-ink-muted">Minimum order</p><p className="mt-1 font-medium">{formatPrice(c.minOrderValue)}</p></div></div>
+<p className="text-xs text-ink-muted">Used {c.timesUsed}{c.usageLimit ? ` / ${c.usageLimit}` : ' · Unlimited'} · Max discount: {c.maxDiscount ? formatPrice(c.maxDiscount) : 'No cap'}</p><p className="text-xs text-ink-muted">Valid until: {c.validUntil ? formatCouponDate(c.validUntil) : 'No expiry'}</p>
+<div className="flex justify-between items-center gap-3"><span className="text-xs">Show in header</span><button role="switch" aria-checked={c.showInNavbar || false} aria-label={`Show ${c.code} in header`} onClick={() => updateCoupon(c.id,{showInNavbar:!c.showInNavbar})} className={`rounded-full px-4 py-2 text-xs ${c.showInNavbar ? 'bg-crimson text-ivory' : 'bg-ivory-200 text-ink-muted'}`}>{c.showInNavbar ? 'On' : 'Off'}</button></div>
+<div className="flex gap-2"><button onClick={() => handleOpenEdit(c)} className="flex-1 rounded-lg bg-crimson text-ivory py-3 text-xs">Edit coupon</button><button onClick={() => updateCoupon(c.id,{isActive:!c.isActive})} className="border border-ivory-300 rounded-lg px-3 text-xs">{c.isActive ? 'Disable' : 'Enable'}</button><button onClick={() => deleteCoupon(c.id)} className="text-crimson px-2 text-xs">Delete</button></div>
+</AdminListCard>)}
+</div><div className="hidden lg:block overflow-x-auto">
+              <table className="w-full min-w-[760px] lg:min-w-0 table-fixed text-left text-xs border-collapse">
+                <colgroup>{[13, 18, 9, 8, 9, 7, 14, 7, 7, 8].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
                 <thead>
-                  <tr className="bg-ink text-ivory uppercase tracking-[0.16em] text-[10px]">
-                    <th className="p-4 border-b border-gold/40">Coupon Code</th>
-                    <th className="p-4 border-b border-gold/40">Description</th>
-                    <th className="p-4 border-b border-gold/40">Discount</th>
-                    <th className="p-4 border-b border-gold/40">Min Order</th>
-                    <th className="p-4 border-b border-gold/40">Max Discount</th>
-                    <th className="p-4 border-b border-gold/40">Usage</th>
-                    <th className="p-4 border-b border-gold/40">Validity</th>
-                    <th className="p-4 border-b border-gold/40">Top Marquee</th>
-                    <th className="p-4 border-b border-gold/40">Status</th>
-                    <th className="p-4 border-b border-gold/40 text-right">Actions</th>
+                  <tr className="bg-ink text-ivory uppercase tracking-[0.05em] text-[9px]">
+                    <th className="px-2 py-3 border-b border-gold/40">Coupon Code</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Description</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Discount</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Min Order</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Max Discount</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Usage</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Validity</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Top Marquee</th>
+                    <th className="px-2 py-3 border-b border-gold/40">Status</th>
+                    <th className="px-2 py-3 border-b border-gold/40 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ivory-300">
                   {!isMounted ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-ink-muted text-xs font-semibold">
+                      <td data-label="" colSpan={10} className="p-4 sm:p-8 text-center text-ink-muted text-xs font-semibold">
                         Loading Coupons...
                       </td>
                     </tr>
                   ) : coupons.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-ink-muted text-xs">
+                      <td data-label="" colSpan={10} className="p-4 sm:p-8 text-center text-ink-muted text-xs">
                         No coupon codes created yet. Click "Add Coupon" above to create one.
                       </td>
                     </tr>
                   ) : (
                     coupons.map((c) => (
                       <tr key={c.id} className="hover:bg-ivory-100/70 transition-colors">
-                        <td className="p-4 font-mono font-bold text-crimson text-sm">
-                          <div className="flex items-center space-x-2">
-                            <span className="bg-crimson/10 px-2.5 py-1 border border-crimson/30 rounded inline-block">
+                        <td data-label="Coupon Code" className="px-2 py-3 font-mono font-bold text-crimson text-xs">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="bg-crimson/10 min-w-0 truncate px-1.5 py-1 border border-crimson/30 rounded inline-block">
                               {c.code}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyCode(c.code)}
                               className="p-1.5 text-ink-muted hover:text-crimson hover:bg-ivory-200 border border-ivory-300 rounded transition-all cursor-pointer flex items-center space-x-1"
-                              title="Copy Coupon Code"
+                              aria-label={`Copy ${c.code}`} title="Copy Coupon Code"
                             >
                               {copiedCode === c.code ? (
                                 <Check className="w-3.5 h-3.5 text-emerald-600 animate-fadeIn" />
@@ -233,10 +242,10 @@ export default function AdminCouponsPage() {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 text-ink font-medium max-w-xs truncate">
-                          {c.description || <span className="text-ink-muted italic">—</span>}
+                        <td data-label="Description" className="px-2 py-3 text-ink font-medium">
+                          <span className="block truncate" title={c.description || undefined}>{c.description || "—"}</span>
                         </td>
-                        <td className="p-4 font-semibold text-ink">
+                        <td data-label="Discount" className="px-2 py-3 font-semibold text-ink">
                           {c.discountType === "percentage" ? (
                             <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
                               {c.discountValue}% OFF
@@ -247,23 +256,23 @@ export default function AdminCouponsPage() {
                             </span>
                           )}
                         </td>
-                        <td className="p-4 text-ink-muted font-mono">
+                        <td data-label="Min Order" className="px-2 py-3 text-ink-muted font-mono">
                           {c.minOrderValue > 0 ? formatPrice(c.minOrderValue) : "₹0 (No min)"}
                         </td>
-                        <td className="p-4 text-ink-muted font-mono">
+                        <td data-label="Max Discount" className="px-2 py-3 text-ink-muted font-mono">
                           {c.maxDiscount ? formatPrice(c.maxDiscount) : "No Cap"}
                         </td>
-                        <td className="p-4 text-ink">
+                        <td data-label="Usage" className="px-2 py-3 text-ink">
                           <span className="font-semibold">{c.timesUsed}</span>
                           <span className="text-ink-muted text-[10px]">
                             {c.usageLimit ? ` / ${c.usageLimit}` : " (Unlimited)"}
                           </span>
                         </td>
-                        <td className="p-4 text-[10px] text-ink-muted space-y-0.5" suppressHydrationWarning>
+                        <td data-label="Validity" className="px-2 py-3 text-[10px] text-ink-muted space-y-0.5" suppressHydrationWarning>
                           <div>From: <span className="font-mono text-ink" suppressHydrationWarning>{c.validFrom ? formatCouponDate(c.validFrom) : "Now"}</span></div>
                           <div>Until: <span className="font-mono text-ink" suppressHydrationWarning>{c.validUntil ? formatCouponDate(c.validUntil) : "Never"}</span></div>
                         </td>
-                        <td className="p-4">
+                        <td data-label="Top Marquee" className="px-2 py-3">
                           <button
                             type="button"
                             onClick={() => updateCoupon(c.id, { showInNavbar: !c.showInNavbar })}
@@ -272,12 +281,13 @@ export default function AdminCouponsPage() {
                                 ? "bg-amber-100 text-amber-900 border border-amber-400 font-extrabold shadow-sm"
                                 : "bg-ivory-200 text-ink-muted border border-ivory-300 opacity-70 hover:opacity-100"
                             }`}
-                            title="Toggle display in top Navbar marquee"
+                            role="switch" aria-checked={c.showInNavbar ?? false} aria-label={`Show ${c.code} in header`}
+                            title="Turn header offer on or off"
                           >
-                            <span>{c.showInNavbar ? "★ Top Marquee" : "Off"}</span>
+                            <span>{c.showInNavbar ? "On" : "Off"}</span>
                           </button>
                         </td>
-                        <td className="p-4">
+                        <td data-label="Status" className="px-2 py-3">
                           <button
                             onClick={() => updateCoupon(c.id, { isActive: !c.isActive })}
                             className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
@@ -289,7 +299,7 @@ export default function AdminCouponsPage() {
                             {c.isActive ? "Active" : "Inactive"}
                           </button>
                         </td>
-                        <td className="p-4 text-right space-x-2">
+                        <td data-label="Actions" className="px-2 py-3 text-right space-x-2">
                           <button
                             onClick={() => handleOpenEdit(c)}
                             className="p-1.5 bg-ink text-ivory hover:bg-gold hover:text-ink transition-colors inline-block cursor-pointer"

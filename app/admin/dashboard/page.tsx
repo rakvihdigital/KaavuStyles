@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Primary Key Metrics Cards (Distinct Luxury Colors) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Revenue - Deep Velvet Burgundy */}
             <div className="bg-[#2B0B14] border-2 border-gold/40 p-6 space-y-3 shadow-md">
               <div className="flex items-center justify-between text-gold">
@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
               href="/admin/products"
               className="bg-ivory p-6 border-2 border-ivory-300 hover:border-crimson transition-all space-y-3 group shadow-sm hover:bg-ivory-200/50"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
                 <h3 className="font-serif text-lg text-ink uppercase group-hover:text-crimson font-bold" suppressHydrationWarning>
                   Products ({isMounted ? products.length : 0})
                 </h3>
@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
               href="/admin/coupons"
               className="bg-ivory p-6 border-2 border-ivory-300 hover:border-crimson transition-all space-y-3 group shadow-sm hover:bg-ivory-200/50"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
                 <h3 className="font-serif text-lg text-ink uppercase group-hover:text-crimson font-bold" suppressHydrationWarning>
                   Coupons ({isMounted ? coupons.length : 0})
                 </h3>
@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
               href="/admin/orders"
               className="bg-ivory p-6 border-2 border-ivory-300 hover:border-crimson transition-all space-y-3 group shadow-sm hover:bg-ivory-200/50"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
                 <h3 className="font-serif text-lg text-ink uppercase group-hover:text-crimson font-bold" suppressHydrationWarning>
                   Orders ({isMounted ? orders.length : 0})
                 </h3>
@@ -234,7 +234,7 @@ export default function AdminDashboardPage() {
               href="/admin/banners"
               className="bg-ivory p-6 border-2 border-ivory-300 hover:border-crimson transition-all space-y-3 group shadow-sm hover:bg-ivory-200/50"
             >
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
                 <h3 className="font-serif text-lg text-ink uppercase group-hover:text-crimson font-bold" suppressHydrationWarning>
                   Banners ({isMounted ? banners.length : 0})
                 </h3>
@@ -273,35 +273,35 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-ivory-200">
                   {!isMounted ? (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-ink-muted">
+                      <td data-label="" colSpan={5} className="py-6 text-center text-ink-muted">
                         Loading Order Log...
                       </td>
                     </tr>
                   ) : orders.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-ink-muted">
+                      <td data-label="" colSpan={5} className="py-6 text-center text-ink-muted">
                         No customer orders recorded yet.
                       </td>
                     </tr>
                   ) : (
                     orders.slice(0, 5).map((order) => (
                       <tr key={order.id} className="hover:bg-ivory-200/50">
-                        <td className="py-3 px-4 font-mono font-semibold text-crimson">
+                        <td data-label="Order #" className="py-3 px-4 font-mono font-semibold text-crimson">
                           #{order.orderNumber}
                         </td>
-                        <td className="py-3 px-4 text-ink">
+                        <td data-label="Customer" className="py-3 px-4 text-ink">
                           {order.customerName}
                           <span className="block text-[10px] text-ink-muted">{order.customerEmail}</span>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-ink">
+                        <td data-label="Total" className="py-3 px-4 font-semibold text-ink">
                           {formatPrice(order.totalAmount)}
                         </td>
-                        <td className="py-3 px-4">
+                        <td data-label="Status" className="py-3 px-4">
                           <span className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded bg-gold/15 text-gold border border-gold/30">
                             {order.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-ink-muted text-[11px]">
+                        <td data-label="Date" className="py-3 px-4 text-ink-muted text-[11px]">
                           {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN") : "—"}
                         </td>
                       </tr>

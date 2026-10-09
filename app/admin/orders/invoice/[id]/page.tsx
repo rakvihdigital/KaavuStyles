@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
+import { isSupabaseConfigured, mapDbOrderToOrder } from "@/lib/supabase";
+import type { Order } from "@/lib/mockData";
+import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Printer, Shield, CheckCircle, Mail, Phone, MapPin, Sparkles } from "lucide-react";
@@ -33,13 +36,49 @@ export default function AdminOrderInvoicePage() {
   const params = useParams();
   const { orders } = useStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [savedOrder, setSavedOrder] = useState<Order | null>(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const orderId = params?.id as string;
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      cancelled = true;
+      controller.abort();
+      setLoadError("Loading took too long. Please retry to load your invoice.");
+      setLoadingInvoice(false);
+    }, 12000);
+    setSavedOrder(null);
+    setLoadError("");
+    setLoadingInvoice(true);
+    async function loadInvoice() {
+      try {
+        if (!isSupabaseConfigured || !orderId) return;
+        const column = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId) ? "id" : "order_number";
+        // Use an independent read client so checkout/auth activity cannot block the invoice.
+        const invoiceDb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+        const { data, error } = await invoiceDb.from("orders").select("*").eq(column, orderId).abortSignal(controller.signal).maybeSingle();
+        if (error) throw error;
+        if (!cancelled && data) setSavedOrder(mapDbOrderToOrder(data));
+      } catch {
+        if (!cancelled) setLoadError("Could not load this invoice. Please check your connection and retry.");
+      } finally {
+        clearTimeout(timeout);
+        if (!cancelled) setLoadingInvoice(false);
+      }
+    }
+    void loadInvoice();
+    return () => { cancelled = true; clearTimeout(timeout); controller.abort(); };
+  }, [orderId, retry]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const orderId = params?.id as string;
-  const order = orders.find((o) => o.id === orderId || o.orderNumber === orderId);
+  const order = savedOrder || orders.find((o) => o.id === orderId || o.orderNumber === orderId);
 
   const handlePrintOrDownload = () => {
     if (typeof window !== "undefined") {
@@ -47,10 +86,10 @@ export default function AdminOrderInvoicePage() {
     }
   };
 
-  if (!isMounted) {
+  if (!isMounted || (!order && loadingInvoice)) {
     return (
       <div className="min-h-screen bg-[#FBF8F3] flex items-center justify-center p-8">
-        <p className="text-sm font-semibold text-ink-muted">Loading A4 Tax Invoice Document...</p>
+        <p className="text-sm font-semibold text-ink-muted">Loading invoice…</p>
       </div>
     );
   }
@@ -58,8 +97,9 @@ export default function AdminOrderInvoicePage() {
   if (!order) {
     return (
       <div className="min-h-screen bg-[#FBF8F3] flex flex-col items-center justify-center p-8 space-y-4">
-        <h2 className="font-serif text-2xl text-ink uppercase">Order Invoice Not Found</h2>
-        <p className="text-xs text-ink-muted">No matching order record found for ID #{orderId}.</p>
+        <h2 className="font-serif text-2xl text-ink uppercase">{loadError ? "Invoice unavailable" : "Order Invoice Not Found"}</h2>
+        <p className="text-xs text-ink-muted" role={loadError ? "alert" : undefined}>{loadError || `No matching order record found for ID #${orderId}.`}</p>
+        {loadError && <button type="button" onClick={() => setRetry(value => value + 1)} className="px-6 py-2.5 border border-gold text-xs font-semibold">Retry loading invoice</button>}
         <Link
           href="/admin/orders"
           className="px-6 py-2.5 bg-crimson text-ivory text-xs uppercase tracking-wider font-semibold"
@@ -70,9 +110,6 @@ export default function AdminOrderInvoicePage() {
     );
   }
 
-  const taxableAmount = order.totalAmount / 1.18;
-  const totalCgst = (order.totalAmount - taxableAmount) / 2;
-  const totalSgst = totalCgst;
 
   return (
     <div className="min-h-screen bg-[#FBF8F3] p-4 sm:p-8 md:p-12 print:p-0 print:bg-white print:min-h-0">
@@ -105,11 +142,11 @@ export default function AdminOrderInvoicePage() {
           className="w-full sm:w-auto px-8 py-3.5 bg-gold hover:bg-amber-600 text-ink text-xs uppercase tracking-[0.16em] font-extrabold flex items-center justify-center space-x-2 border-2 border-gold shadow-lg transition-all cursor-pointer"
         >
           <Printer className="w-4.5 h-4.5 text-ink" />
-          <span>Print & Download A4 Tax Invoice (PDF)</span>
+          <span>Print & Download A4 Invoice (PDF)</span>
         </button>
       </div>
 
-      {/* High-End Luxury A4 Sheet Tax Invoice Container Box */}
+      {/* High-End Luxury A4 Sheet Invoice Container Box */}
       <div className="max-w-4xl mx-auto bg-white border-2 border-gold shadow-2xl p-6 sm:p-10 space-y-6 text-black font-sans print:border-2 print:border-black print:p-6 print:w-full print:max-w-none print:shadow-none">
         
         {/* Brand Invoice Top Header Box */}
@@ -132,14 +169,14 @@ export default function AdminOrderInvoicePage() {
                 For Every Version Of You
               </p>
               <p className="text-[11px] text-gray-700 font-sans pt-0.5">
-                Luxury Ethnic Wear & Couture Studio • GSTIN: <span className="font-bold text-black">33AAACK1234F1Z9</span>
+                Luxury Ethnic Wear & Couture Studio
               </p>
             </div>
           </div>
 
           <div className="text-right space-y-1 w-full sm:w-auto bg-[#FAF5EC] p-3.5 border border-gold/40 print:bg-gray-100 print:border-black">
             <div className="inline-block bg-[#2B0B14] text-gold px-3 py-1 font-bold text-xs uppercase tracking-widest border border-gold/40 print:bg-black print:text-white print:border-black">
-              RETAIL TAX INVOICE
+              RETAIL INVOICE
             </div>
             <p className="font-mono text-sm font-extrabold text-crimson print:text-black pt-1">
               Invoice #: <span>INV-{order.orderNumber}</span>
@@ -189,19 +226,15 @@ export default function AdminOrderInvoicePage() {
               <tr className="border-b-2 border-gold bg-[#2B0B14] text-gold uppercase text-[10px] font-extrabold tracking-wider print:bg-black print:text-white print:border-black">
                 <th className="p-3 border-r border-gold/40 print:border-gray-500 w-10 text-center">S.No</th>
                 <th className="p-3 border-r border-gold/40 print:border-gray-500">Item Description</th>
-                <th className="p-3 border-r border-gold/40 print:border-gray-500 w-28">Variant / HSN</th>
+                <th className="p-3 border-r border-gold/40 print:border-gray-500 w-28">Variant</th>
                 <th className="p-3 border-r border-gold/40 print:border-gray-500 w-12 text-center">Qty</th>
                 <th className="p-3 border-r border-gold/40 print:border-gray-500 w-20 text-right">Rate (₹)</th>
-                <th className="p-3 border-r border-gold/40 print:border-gray-500 w-24 text-right">Taxable (₹)</th>
-                <th className="p-3 border-r border-gold/40 print:border-gray-500 w-20 text-right">GST (18%)</th>
                 <th className="p-3 text-right w-24">Total Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gold/30 print:divide-black font-sans">
               {order.items.map((item, idx) => {
                 const lineTotal = item.price * item.quantity;
-                const lineTaxable = lineTotal / 1.18;
-                const lineGst = lineTotal - lineTaxable;
 
                 return (
                   <tr key={idx} className="text-[11px] hover:bg-[#FAF8F5]">
@@ -214,8 +247,6 @@ export default function AdminOrderInvoicePage() {
                     </td>
                     <td className="p-3 border-r border-gold/30 print:border-black text-center font-mono font-bold">{item.quantity}</td>
                     <td className="p-3 border-r border-gold/30 print:border-black text-right font-mono">{formatPrice(item.price)}</td>
-                    <td className="p-3 border-r border-gold/30 print:border-black text-right font-mono">{formatPrice(lineTaxable)}</td>
-                    <td className="p-3 border-r border-gold/30 print:border-black text-right font-mono">{formatPrice(lineGst)}</td>
                     <td className="p-3 text-right font-mono font-extrabold text-crimson print:text-black">
                       {formatPrice(lineTotal)}
                     </td>
@@ -226,7 +257,7 @@ export default function AdminOrderInvoicePage() {
           </table>
         </div>
 
-        {/* GST Calculation Breakdown & Amount in Words Box */}
+        {/* Order Total & Amount in Words Box */}
         <div className="border-2 border-gold grid grid-cols-1 sm:grid-cols-2 text-xs divide-y sm:divide-y-0 sm:divide-x-2 divide-gold print:border-black print:divide-black">
           <div className="p-5 space-y-3 bg-[#FAF8F5] print:bg-white">
             <div>
@@ -247,24 +278,8 @@ export default function AdminOrderInvoicePage() {
           </div>
 
           <div className="p-5 space-y-2 font-mono text-xs bg-white">
-            <div className="flex justify-between text-gray-800">
-              <span>Total Taxable Amount:</span>
-              <span className="font-bold text-black">{formatPrice(taxableAmount)}</span>
-            </div>
-            <div className="flex justify-between text-gray-800">
-              <span>CGST @ 9%:</span>
-              <span>{formatPrice(totalCgst)}</span>
-            </div>
-            <div className="flex justify-between text-gray-800">
-              <span>SGST @ 9%:</span>
-              <span>{formatPrice(totalSgst)}</span>
-            </div>
-            <div className="flex justify-between text-gray-800 border-b border-gold/30 pb-1 print:border-black">
-              <span>Total Tax (18% GST):</span>
-              <span>{formatPrice(order.totalAmount - taxableAmount)}</span>
-            </div>
             <div className="flex justify-between text-sm font-extrabold text-ink pt-1 print:text-black">
-              <span>GRAND TOTAL (NET INCL.):</span>
+              <span>TOTAL:</span>
               <span className="font-serif text-xl font-extrabold text-crimson print:text-black">{formatPrice(order.totalAmount)}</span>
             </div>
           </div>
@@ -275,7 +290,7 @@ export default function AdminOrderInvoicePage() {
           <div className="space-y-1">
             <p className="font-extrabold uppercase text-ink print:text-black">Terms & Return Policy:</p>
             <ol className="list-decimal list-inside space-y-0.5 text-[10px]">
-              <li>Goods once sold can be exchanged within 7 days with original tax tag attached.</li>
+              <li>Goods once sold can be exchanged within 7 days with original tag attached.</li>
               <li>Handcrafted silk and embellished couture require specialized dry cleaning.</li>
               <li>Subject to Chennai Jurisdiction only.</li>
             </ol>

@@ -15,6 +15,8 @@ export interface Product {
   category: string;
   categoryId: string;
   stock: number;
+  sizeStock?: Record<string, number>;
+  colorImages?: Record<string, string[]>;
   sizes: string[];
   colors: string[];
   lifestyleTags: string[];
@@ -29,6 +31,7 @@ export interface Banner {
   title: string;
   subtitle: string;
   imageUrl: string;
+  mobileImageUrl?: string;
   ctaText: string;
   ctaLink: string;
   isActive: boolean;

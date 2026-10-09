@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
+import { payWithRazorpay } from "@/lib/razorpay-checkout";
 import {
   ShieldCheck,
   MapPin,
@@ -13,8 +14,7 @@ import {
   User as UserIcon,
   Building,
   Navigation,
-  CreditCard,
-  CheckCircle2,
+    CheckCircle2,
   Ticket,
   CheckCircle,
   ShoppingBag,
@@ -77,7 +77,7 @@ export default function CheckoutPage() {
     applyCoupon,
     removeCoupon,
     getDiscountAmount,
-    addOrder,
+    acceptPaidOrder,
     currentUser,
     openAuthModal,
     ipAddress,
@@ -98,9 +98,10 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState("");
   const [saveAddressLocally, setSaveAddressLocally] = useState(true);
 
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("COD");
   const [couponInput, setCouponInput] = useState("");
   const [couponMsg, setCouponMsg] = useState<{ success: boolean; text: string } | null>(null);
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<any | null>(null);
 
   useEffect(() => {
@@ -163,8 +164,7 @@ export default function CheckoutPage() {
   const subtotal = getCartTotal();
   const discount = getDiscountAmount();
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const gstAmount = discountedSubtotal * 0.18;
-  const grandTotal = discountedSubtotal * 1.18;
+  const grandTotal = discountedSubtotal;
 
   const handleApplyCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,9 +175,9 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.length === 0) return;
+    if (cart.length === 0 || placing) return;
 
     if (saveAddressLocally && address && city && postalCode) {
       try {
@@ -211,20 +211,24 @@ export default function CheckoutPage() {
       image: item.product.images[0] || "",
     }));
 
-    const newOrder = addOrder({
+    setPlacing(true); setOrderError("");
+    try {
+    const newOrder = await payWithRazorpay({
       customerName: name,
       customerEmail: email,
       customerPhone: phone,
       shippingAddress: fullShippingAddress,
       city,
       postalCode,
-      totalAmount: grandTotal,
+      couponCode: appliedCoupon?.code,
       status: "Pending",
       items: orderItems,
       ipAddress,
     });
 
+    acceptPaidOrder(newOrder);
     setPlacedOrder(newOrder);
+    } catch (error) { setOrderError(error instanceof Error ? error.message : "Payment could not be completed."); } finally { setPlacing(false); }
   };
 
   if (!isMounted) {
@@ -277,7 +281,7 @@ export default function CheckoutPage() {
             <p className="text-ink-muted leading-relaxed text-xs">{placedOrder.shippingAddress}</p>
             <p className="text-ink-muted font-mono text-xs">PIN Code: {placedOrder.postalCode}</p>
             <div className="pt-3 border-t border-gold/30 flex justify-between items-center">
-              <span className="font-bold text-ink uppercase tracking-wider text-xs">Grand Total Amount (Incl. 18% GST):</span>
+              <span className="font-bold text-ink uppercase tracking-wider text-xs">Grand Total Amount:</span>
               <span className="font-serif text-2xl text-crimson font-extrabold">{formatPrice(placedOrder.totalAmount)}</span>
             </div>
           </div>
@@ -533,51 +537,6 @@ export default function CheckoutPage() {
                   Save this address for fast 1-click checkout in future orders
                 </label>
               </div>
-
-              {/* PAYMENT OPTIONS */}
-              <div className="pt-4 border-t border-gold/30 space-y-3">
-                <h3 className="font-serif text-xl uppercase text-ink flex items-center space-x-2">
-                  <CreditCard className="w-5 h-5 text-crimson" />
-                  <span>2. Payment Method</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("COD")}
-                    className={`p-4 border text-left flex items-center justify-between text-xs font-bold cursor-pointer transition-all ${
-                      paymentMethod === "COD"
-                        ? "border-crimson bg-crimson/5 text-crimson shadow-sm"
-                        : "border-ivory-300 bg-white text-ink hover:border-gold"
-                    }`}
-                  >
-                    <div className="space-y-0.5">
-                      <span className="block uppercase tracking-wider">Cash on Delivery (COD)</span>
-                      <span className="text-[10px] font-normal text-ink-muted block">Pay cash upon doorstep package arrival</span>
-                    </div>
-                    {paymentMethod === "COD" && <CheckCircle2 className="w-5 h-5 text-crimson flex-shrink-0" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("Online")}
-                    className={`p-4 border text-left flex items-center justify-between text-xs font-bold cursor-pointer transition-all ${
-                      paymentMethod === "Online"
-                        ? "border-crimson bg-crimson/5 text-crimson shadow-sm"
-                        : "border-ivory-300 bg-white text-ink hover:border-gold"
-                    }`}
-                  >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center space-x-1.5">
-                        <CreditCard className="w-4 h-4 text-gold" />
-                        <span className="uppercase tracking-wider">Online Payment (UPI/Card)</span>
-                      </div>
-                      <span className="text-[10px] font-normal text-ink-muted block">100% Encrypted Payment Verification</span>
-                    </div>
-                    {paymentMethod === "Online" && <CheckCircle2 className="w-5 h-5 text-crimson flex-shrink-0" />}
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* RIGHT COLUMN: ORDER ITEMS RECTANGLE SUMMARY (5 COLS) */}
@@ -672,24 +631,9 @@ export default function CheckoutPage() {
 
                 {/* PRICE BREAKDOWN RECTANGLE */}
                 <div className="bg-white p-4 border border-gold/40 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-ink-muted">
-                    <span>Subtotal:</span>
-                    <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
-                  </div>
 
-                  {discount > 0 && (
-                    <div className="flex justify-between items-center text-emerald-700 font-bold">
-                      <span>Coupon Discount ({appliedCoupon?.code}):</span>
-                      <span>-{formatPrice(discount)}</span>
-                    </div>
-                  )}
 
-                  <div className="flex justify-between items-center text-ink-muted">
-                    <span>Estimated GST (18%):</span>
-                    <span className="font-semibold text-gold">{formatPrice(gstAmount)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-ivory-300">
+                  <div className="flex justify-between items-center">
                     <span className="font-bold text-ink uppercase tracking-wider">Total Amount:</span>
                     <span className="font-serif text-2xl text-crimson font-extrabold">
                       {formatPrice(grandTotal)}
@@ -699,11 +643,12 @@ export default function CheckoutPage() {
               </div>
 
               {/* PLACE ORDER BUTTON */}
+              {orderError && <p role="alert" className="text-sm text-crimson">{orderError}</p>}
               <button
-                type="submit"
+                type="submit" disabled={placing}
                 className="w-full py-4 bg-crimson hover:bg-crimson-800 text-ivory font-sans text-xs uppercase tracking-[0.24em] font-extrabold transition-all shadow-xl cursor-pointer border-2 border-gold"
               >
-                Confirm & Place Order ({formatPrice(grandTotal)})
+                {placing ? "Processing payment…" : `Pay ${formatPrice(grandTotal)} & Place Order`}
               </button>
             </div>
           </form>

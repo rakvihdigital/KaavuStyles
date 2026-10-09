@@ -5,13 +5,17 @@ import Image from "next/image";
 import { Product } from "@/lib/mockData";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/utils";
+import { stockForSize } from "@/lib/inventory";
 import { Heart, ShoppingBag } from "lucide-react";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import ShareProduct from "@/components/ShareProduct";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { toggleWishlist, isInWishlist, addToCart } = useStore();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const isWishlisted = isInWishlist(product.id);
+  const availableSize = (product.sizes.length ? product.sizes : ["Standard"]).find(size => stockForSize(product, size) > 0);
+  const soldOut = availableSize === undefined;
 
   return (
     <>
@@ -21,6 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
       >
         {/* Product Image */}
         <div className="relative aspect-[4/5] w-full bg-ivory-200 overflow-hidden">
+          {soldOut && <span className="absolute top-3 left-3 z-10 bg-ink/85 text-ivory px-3 py-1.5 text-[10px] uppercase tracking-wider">Out of stock</span>}
           <Image
             src={product.images[0] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600"}
             alt={product.name}
@@ -32,7 +37,8 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
           {/* Top Right Action Buttons: Wishlist & Add to Cart */}
-          <div className="absolute top-2.5 right-2.5 flex flex-col space-y-2 z-10">
+          <div className="absolute top-2.5 right-2.5 flex flex-row items-start gap-2 z-10">
+            <ShareProduct product={product} compact />
             {/* Wishlist Button */}
             <button
               onClick={(e) => {
@@ -51,12 +57,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
             {/* Add to Cart Button */}
             <button
+              disabled={soldOut}
               onClick={(e) => {
                 e.stopPropagation();
-                addToCart(product);
+                if (!soldOut) addToCart(product, availableSize);
               }}
-              className="p-2 rounded-full bg-ivory/80 text-ink hover:text-crimson hover:bg-ivory backdrop-blur-md transition-all shadow-md cursor-pointer"
-              title="Add to Shopping Bag"
+              className="p-2 rounded-full bg-ivory/80 text-ink enabled:hover:text-crimson enabled:hover:bg-ivory backdrop-blur-md transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+              title={soldOut ? "Out of stock" : "Add to Shopping Bag"}
+              aria-label={soldOut ? "Out of stock" : "Add to Shopping Bag"}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
             </button>
@@ -85,7 +93,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-emerald-700 font-medium">In Stock</span>
+            <span className={`text-[10px] font-medium ${soldOut ? "text-crimson" : "text-emerald-700"}`}>{soldOut ? "Out of stock" : "In stock"}</span>
           </div>
         </div>
       </div>

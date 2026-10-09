@@ -56,7 +56,7 @@ export default function AdminAttributesPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <AdminHeader title="Lifestyle Tags, Sizes & Colors Management" />
 
-        <main className="p-8 space-y-8">
+        <main className="p-4 sm:p-8 space-y-8">
           {/* SECTION 1: LIFESTYLE TAGS */}
           <div className="bg-ivory border border-ivory-300 p-6 space-y-6 shadow-sm">
             <div className="flex items-center space-x-2 border-b border-ivory-300 pb-3">
@@ -64,7 +64,7 @@ export default function AdminAttributesPage() {
               <h2 className="font-serif text-xl text-ink uppercase">Lifestyle Tags ({lifestyleTags.length})</h2>
             </div>
 
-            <form onSubmit={handleAddTag} className="flex gap-4 max-w-md">
+            <form onSubmit={handleAddTag} className="flex flex-col sm:flex-row gap-3 max-w-md">
               <input
                 type="text"
                 required
