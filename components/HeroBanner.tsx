@@ -47,11 +47,11 @@ export default function HeroBanner() {
   const banner = activeBanners[currentIdx % activeBanners.length];
   const { props: landscapeProps } = getImageProps({
     src: banner.imageUrl, alt: banner.title, fill: true,
-    sizes: "100vw", quality: 85, priority: true,
+    sizes: "100vw", quality: 75, priority: true,
   });
   const { props: mobileProps } = getImageProps({
     src: banner.mobileImageUrl || banner.imageUrl, alt: banner.title, fill: true,
-    sizes: "100vw", quality: 85, priority: true,
+    sizes: "100vw", quality: 75, priority: true,
   });
   const textAlign = banner.textAlign?.toLowerCase() || "left";
 
@@ -79,25 +79,27 @@ export default function HeroBanner() {
 
   return (
     <div data-home-hero className="relative w-full bg-ink overflow-hidden group">
+      <link rel="preload" as="image" href={mobileProps.srcSet ? undefined : mobileProps.src} imageSrcSet={mobileProps.srcSet} imageSizes={mobileProps.sizes} media="(max-width: 767px)" />
+      <link rel="preload" as="image" href={landscapeProps.srcSet ? undefined : landscapeProps.src} imageSrcSet={landscapeProps.srcSet} imageSizes={landscapeProps.sizes} media="(min-width: 768px)" />
       {/* Background Banner Image & Dark Vignette Overlay */}
       <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[1600/500]">
         <picture>
           <source media="(max-width: 767px)" srcSet={mobileProps.srcSet || mobileProps.src} sizes={mobileProps.sizes} />
-          <img {...landscapeProps} className="object-cover object-top" />
+          <img {...landscapeProps} fetchPriority="high" decoding="async" className="object-cover object-top" />
         </picture>
         {/* Dark Vignette & Gradient Overlay for Contrast */}
         <div className={`absolute inset-0 ${textAlign === "right" ? "bg-gradient-to-l" : textAlign === "center" ? "bg-gradient-to-t" : "bg-gradient-to-r"} from-black/65 via-black/20 to-transparent`} />
       </div>
 
       {/* Hero Content Overlay (Centered on Mobile, Respects text_align on Desktop) */}
-      <div className={`absolute inset-0 max-w-7xl mx-auto px-7 pt-10 pb-16 md:px-16 md:py-8 lg:px-20 flex flex-col justify-end md:justify-center items-center text-center text-ivory ${desktopAlignClass}`}>
+      <div className={`absolute inset-0 max-w-7xl mx-auto px-6 pt-10 pb-16 md:px-16 md:py-8 lg:px-20 flex flex-col justify-end md:justify-center items-center text-center text-ivory ${desktopAlignClass}`}>
         <div key={banner.id} className={`hero-entrance w-full max-w-[30rem] gap-4 lg:gap-5 mx-auto flex flex-col items-center text-center ${desktopAlignClass}`}>
-          <p className="font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-ivory/90 font-medium">
+          <p className="font-sans text-[9px] sm:text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.3em] text-ivory/90 font-medium max-w-full break-words">
             {banner.subtitle || "KAAVU STYLES EXCLUSIVE"}
           </p>
 
           <h1
-            className="font-serif text-4xl sm:text-4xl md:text-[clamp(2rem,3vw,3.5rem)] font-medium leading-[1.08] tracking-[-0.025em] text-balance"
+            className="font-serif text-[clamp(1.875rem,8vw,2.5rem)] sm:text-4xl md:text-[clamp(2rem,3vw,3.5rem)] font-medium leading-[1.08] tracking-[-0.025em] text-balance max-w-full break-words"
             style={{ color: banner.textColor || "#F8F3EC", textShadow: "0 2px 18px rgba(0,0,0,0.25)" }}
           >
             {banner.title}
@@ -120,7 +122,8 @@ export default function HeroBanner() {
         <>
           <button
             onClick={handlePrev}
-            className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+            type="button"
+            className="absolute z-10 left-2 sm:left-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full border border-ivory/30 bg-ink/40 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -128,7 +131,8 @@ export default function HeroBanner() {
 
           <button
             onClick={handleNext}
-            className="hidden md:block absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ivory/20 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+            type="button"
+            className="absolute z-10 right-2 sm:right-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full border border-ivory/30 bg-ink/40 hover:bg-ivory text-ivory hover:text-ink backdrop-blur-sm transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />

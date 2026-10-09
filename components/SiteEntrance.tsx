@@ -39,7 +39,7 @@ export default function SiteEntrance({ children }: { children: React.ReactNode }
           <span className="sr-only">Loading your shopping experience…</span>
         </div>
       )}
-      <div ref={content} className="flex min-h-screen flex-col" aria-hidden={!finished || undefined}>{children}</div>
+      <div ref={content} className="flex w-full min-w-0 max-w-full min-h-screen flex-col" aria-hidden={!finished || undefined}>{children}</div>
     </>
   );
 }

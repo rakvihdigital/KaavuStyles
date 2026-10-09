@@ -11,6 +11,9 @@ interface ImageUploaderProps {
   single?: boolean;
   label?: string;
   noOptimize?: boolean;
+  maxDimension?: number;
+  quality?: number;
+  alwaysOptimize?: boolean;
 }
 
 interface ImageDimension {
@@ -25,6 +28,9 @@ export default function ImageUploader({
   single = false,
   label = "Upload Product Images",
   noOptimize = false,
+  maxDimension = 1600,
+  quality = 0.85,
+  alwaysOptimize = false,
 }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [urlInput, setUrlInput] = useState("");
@@ -70,7 +76,7 @@ export default function ImageUploader({
         );
         newImages = await Promise.all(promises);
       } else {
-        const promises = fileList.map((file) => compressAndOptimizeImage(file, 1600, 0.85));
+        const promises = fileList.map((file) => compressAndOptimizeImage(file, maxDimension, quality, alwaysOptimize));
         newImages = await Promise.all(promises);
       }
 

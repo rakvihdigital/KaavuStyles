@@ -38,7 +38,7 @@ export default function RootLayout({
         <StoreProvider>
           <SiteEntrance>
           <Navbar />
-          <main className="flex-grow pb-16 lg:pb-0">{children}</main>
+          <main className="flex-grow min-w-0 w-full pb-16 lg:pb-0">{children}</main>
           <Footer />
           <MobileBottomNav />
           <AuthModal />

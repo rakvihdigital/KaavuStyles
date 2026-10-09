@@ -6,6 +6,7 @@ import AdminHeader from "@/components/AdminHeader";
 import ImageUploader from "@/components/ImageUploader";
 import { useStore } from "@/context/StoreContext";
 import { Banner } from "@/lib/mockData";
+import { compressAndOptimizeImage } from "@/lib/utils";
 import Image from "next/image";
 import { Plus, Trash2, X, AlignLeft, AlignCenter, AlignRight, Pencil } from "lucide-react";
 
@@ -63,12 +64,22 @@ export default function AdminBannersPage() {
     setSaving(true);
     setSaveError("");
     try {
+    // Also compress older inline uploads when a banner is edited and saved.
+    const optimizeInlineImage = async (image: string, maxDimension: number) => {
+      if (!image.startsWith("data:image/")) return image;
+      const blob = await (await fetch(image)).blob();
+      return compressAndOptimizeImage(new File([blob], "banner", { type: blob.type }), maxDimension, 0.78, true);
+    };
+    const [landscapeImage, mobileImage] = await Promise.all([
+      optimizeInlineImage(bannerImages[0], 1600),
+      optimizeInlineImage(mobileImages[0] || "", 1000),
+    ]);
     if (editingBannerId) {
       await updateBanner(editingBannerId, {
         title,
         subtitle,
-        imageUrl: bannerImages[0],
-        mobileImageUrl: mobileImages[0] || "",
+        imageUrl: landscapeImage,
+        mobileImageUrl: mobileImage,
         ctaText,
         ctaLink,
         textAlign,
@@ -79,8 +90,8 @@ export default function AdminBannersPage() {
       await addBanner({
         title,
         subtitle,
-        imageUrl: bannerImages[0],
-        mobileImageUrl: mobileImages[0] || "",
+        imageUrl: landscapeImage,
+        mobileImageUrl: mobileImage,
         ctaText,
         ctaLink,
         isActive,
@@ -444,14 +455,16 @@ export default function AdminBannersPage() {
                         {(mobileImages[0] || bannerImages[0]) ? <Image src={mobileImages[0] || bannerImages[0]} alt="Mobile banner preview" fill sizes="160px" className="object-cover object-top" /> : <p className="p-4 text-xs text-ivory">Upload a mobile photo below</p>}
                       </div>
                     </div>
-                    <ImageUploader images={mobileImages} onChange={setMobileImages} single={true} noOptimize={true} label="Mobile Banner — 800 × 1000 px (optional)" />
+                    <ImageUploader images={mobileImages} onChange={setMobileImages} single={true} alwaysOptimize maxDimension={1000} quality={0.78} label="Mobile Banner — 800 × 1000 px (optional)" />
                     <p className="text-xs text-ink-muted">Mobile uses the landscape image when no mobile photo is uploaded.</p>
-                    {/* Image Uploader (Raw Original Quality - No Optimization) */}
+                    {/* Image Uploader (WebP Compression) */}
                     <ImageUploader
                       images={bannerImages}
                       onChange={setBannerImages}
                       single={true}
-                      noOptimize={true}
+                      alwaysOptimize
+                      maxDimension={1600}
+                      quality={0.78}
                       label="Landscape Banner — 1600 × 500 px"
                     />
                   </div>

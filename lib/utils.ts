@@ -32,7 +32,8 @@ export function getClientIp(): string {
 export async function compressAndOptimizeImage(
   file: File,
   maxDimension = 1600,
-  quality = 0.85
+  quality = 0.85,
+  alwaysOptimize = false
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) {
@@ -51,7 +52,7 @@ export async function compressAndOptimizeImage(
       const sizeInMB = file.size / (1024 * 1024);
 
       // If file size is normal (<= 1MB) and dimensions are normal (<= 1600px), keep original untouched!
-      if (sizeInMB <= 1 && width <= maxDimension && height <= maxDimension) {
+      if (!alwaysOptimize && sizeInMB <= 1 && width <= maxDimension && height <= maxDimension) {
         const reader = new FileReader();
         reader.onloadend = () => {
           resolve(reader.result as string);

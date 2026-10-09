@@ -30,6 +30,8 @@ export default function ProductCard({ product }: { product: Product }) {
             src={product.images[0] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600"}
             alt={product.name}
             fill
+            sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 320px"
+            quality={75}
             className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
           />
 

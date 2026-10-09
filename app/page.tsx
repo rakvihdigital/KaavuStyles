@@ -169,6 +169,8 @@ export default function HomePage() {
                     src={cat.imageUrl}
                     alt={cat.name}
                     fill
+                    sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 20vw"
+                    quality={75}
                     className="object-cover opacity-85 group-hover:scale-110 transition-transform duration-1000 ease-out"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/30 to-transparent" />
@@ -454,6 +456,8 @@ export default function HomePage() {
                   src={post.imageUrl}
                   alt={post.caption || "Instagram"}
                   fill
+                  sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
+                  quality={75}
                   className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-90"
                 />
                 <div className="absolute inset-0 bg-[#2B0B14]/80 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-5 text-ivory">
