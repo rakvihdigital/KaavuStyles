@@ -7,7 +7,7 @@ import { useStore } from "@/context/StoreContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function HeroBanner() {
-  const { banners } = useStore();
+  const { banners, isLoading } = useStore();
   const activeBanners = banners.filter((b) => b.isActive);
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -19,8 +19,17 @@ export default function HeroBanner() {
     return () => clearInterval(interval);
   }, [activeBanners.length]);
 
-  if (activeBanners.length === 0) {
-    return null;
+  if (isLoading || activeBanners.length === 0) {
+    return (
+      <div className="relative w-full h-[52vh] sm:h-[62vh] lg:h-[70vh] min-h-[380px] sm:min-h-[460px] max-h-[640px] bg-[#2B0B14] overflow-hidden flex flex-col items-center justify-center text-center p-6 space-y-4 border-b-2 border-gold/40 animate-pulse z-0">
+        <div className="w-16 h-16 rounded-full border-2 border-gold/40 p-1 bg-[#2B0B14]">
+          <div className="w-full h-full rounded-full bg-gold/20" />
+        </div>
+        <div className="h-3.5 w-36 sm:w-44 bg-gold/30 rounded mx-auto" />
+        <div className="h-8 sm:h-12 w-64 sm:w-[450px] bg-gold/40 rounded mx-auto" />
+        <div className="h-10 w-44 bg-crimson/60 rounded border border-gold/40 mx-auto mt-3" />
+      </div>
+    );
   }
 
   const banner = activeBanners[currentIdx];

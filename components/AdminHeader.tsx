@@ -1,12 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import { User, ExternalLink, Shield } from "lucide-react";
 
 export default function AdminHeader({ title }: { title: string }) {
   const { currentUser } = useStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <header className="bg-ivory-200 border-b border-ivory-300 py-4 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -31,8 +36,8 @@ export default function AdminHeader({ title }: { title: string }) {
 
         <div className="flex items-center space-x-2 bg-ivory border border-ivory-300 px-3 py-1.5 rounded">
           <Shield className="w-4 h-4 text-crimson" />
-          <span className="text-xs text-ink font-medium">
-            {currentUser?.name || "Demo Admin"}
+          <span suppressHydrationWarning className="text-xs text-ink font-medium">
+            {isMounted ? currentUser?.name || "Admin User" : "Admin User"}
           </span>
         </div>
       </div>
