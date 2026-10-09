@@ -267,13 +267,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             { data: colData },
             { data: igData },
           ] = await Promise.all([
-            supabase.from("products").select("*").order("created_at", { ascending: false }),
-            supabase.from("categories").select("*").order("name", { ascending: true }),
+            supabase.from("products").select("*").order("created_at", { ascending: false }).then(result => {
+              if (!cancelled && !result.error && result.data) setProducts(result.data.map(mapDbProductToProduct));
+              return result;
+            }),
+            supabase.from("categories").select("*").order("name", { ascending: true }).then(result => {
+              if (!cancelled && !result.error && result.data) setCategories(result.data.map(mapDbCategoryToCategory));
+              return result;
+            }),
             supabase.from("orders").select("*").order("created_at", { ascending: false }),
             supabase.from("lifestyle_tags").select("*"),
             supabase.from("sizes").select("*"),
             supabase.from("colors").select("*"),
-            supabase.from("instagram_posts").select("*"),
+            supabase.from("instagram_posts").select("*").then(result => {
+              if (!cancelled && !result.error && result.data) setInstagramPosts(result.data.map(mapDbIgToIg));
+              return result;
+            }),
           ]);
 
           if (!pErr && pData && pData.length > 0) setProducts(pData.map(mapDbProductToProduct));

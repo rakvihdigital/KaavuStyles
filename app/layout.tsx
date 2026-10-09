@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
 import CartDrawer from "@/components/CartDrawer";
 import ToastNotification from "@/components/ToastNotification";
+import SiteEntrance from "@/components/SiteEntrance";
 
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className="bg-ivory text-ink min-h-screen flex flex-col font-sans selection:bg-crimson selection:text-ivory">
         <StoreProvider>
+          <SiteEntrance>
           <Navbar />
           <main className="flex-grow pb-16 lg:pb-0">{children}</main>
           <Footer />
@@ -42,6 +44,7 @@ export default function RootLayout({
           <AuthModal />
           <CartDrawer />
           <ToastNotification />
+          </SiteEntrance>
         </StoreProvider>
       </body>
     </html>

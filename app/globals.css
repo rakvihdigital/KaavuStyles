@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+.site-entrance {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at center, #451622 0%, #2b0b14 65%);
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+.site-entrance-leaving { opacity: 0; pointer-events: none; }
+.site-entrance-emblem {
+  padding: 9px;
+  border: 1px solid #b89555;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9px rgba(184, 149, 85, .08);
+}
+.site-entrance-track {
+  margin-top: 36px;
+  width: 120px;
+  height: 2px;
+  background: rgba(184, 149, 85, .2);
+  overflow: hidden;
+}
+.site-entrance-track span {
+  display: block;
+  height: 100%;
+  width: 45%;
+  background: #b89555;
+  animation: site-entrance-progress 1.2s ease-in-out infinite;
+}
+@keyframes site-entrance-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(330%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-entrance { transition: none; }
+  .site-entrance-track span { animation: none; width: 100%; }
+}
+
 .admin-nav-dialog aside { display: flex; position: static; width: 100%; height: 100dvh; }
 
 @media screen and (max-width: 1023px) {

@@ -21,7 +21,13 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const { products, categories, instagramPosts, lifestyleTags, isLoading } = useStore();
+  const { products, categories, instagramPosts, lifestyleTags, isLoading: storeLoading } = useStore();
+  const [initialLoadElapsed, setInitialLoadElapsed] = useState(false);
+  const isLoading = storeLoading && !initialLoadElapsed;
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialLoadElapsed(true), 3500);
+    return () => clearTimeout(timer);
+  }, []);
   const [activeTag, setActiveTag] = useState("all");
   const sliderRef = useRef<HTMLDivElement>(null);
   const lifestyleSliderRef = useRef<HTMLDivElement>(null);

@@ -9,6 +9,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function HeroBanner() {
   const { banners, isBannerLoading } = useStore();
   const activeBanners = banners.filter((b) => b.isActive);
+  const [initialLoadElapsed, setInitialLoadElapsed] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialLoadElapsed(true), 3500);
+    return () => clearTimeout(timer);
+  }, []);
   const [currentIdx, setCurrentIdx] = useState(0);
 
   useEffect(() => {
@@ -19,7 +24,7 @@ export default function HeroBanner() {
     return () => clearInterval(interval);
   }, [activeBanners.length]);
 
-  if (isBannerLoading || activeBanners.length === 0) {
+  if (isBannerLoading && !initialLoadElapsed && activeBanners.length === 0) {
     return (
       <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[1600/500] bg-[#2B0B14] overflow-hidden flex flex-col items-center justify-center text-center p-6 space-y-4 border-b-2 border-gold/40 animate-pulse z-0">
         <div className="w-16 h-16 rounded-full border-2 border-gold/40 p-1 bg-[#2B0B14]">
@@ -32,6 +37,13 @@ export default function HeroBanner() {
     );
   }
 
+  if (activeBanners.length === 0) return (
+    <section className="bg-[#2B0B14] min-h-[360px] sm:min-h-[420px] flex flex-col items-center justify-center text-center px-6 text-ivory">
+      <p className="text-gold text-xs uppercase tracking-[0.2em]">Kaavu Styles</p>
+      <h1 className="font-serif text-4xl sm:text-6xl mt-4">For Every Version Of You</h1>
+      <Link href="/shop" className="mt-8 border border-gold px-8 py-3 text-sm">Explore the Collection</Link>
+    </section>
+  );
   const banner = activeBanners[currentIdx % activeBanners.length];
   const { props: landscapeProps } = getImageProps({
     src: banner.imageUrl, alt: banner.title, fill: true,
