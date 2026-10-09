@@ -234,60 +234,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       try {
         if (isSupabaseConfigured) {
-          // Fetch Products
-          const { data: pData, error: pErr } = await supabase
-            .from("products")
-            .select("*")
-            .order("created_at", { ascending: false });
+          // Fetch all store collections concurrently in parallel
+          const [
+            { data: pData, error: pErr },
+            { data: cData, error: cErr },
+            { data: bData, error: bErr },
+            { data: oData, error: oErr },
+            { data: tData },
+            { data: sData },
+            { data: colData },
+            { data: igData },
+          ] = await Promise.all([
+            supabase.from("products").select("*").order("created_at", { ascending: false }),
+            supabase.from("categories").select("*").order("name", { ascending: true }),
+            supabase.from("banners").select("*").order("order_num", { ascending: true }),
+            supabase.from("orders").select("*").order("created_at", { ascending: false }),
+            supabase.from("lifestyle_tags").select("*"),
+            supabase.from("sizes").select("*"),
+            supabase.from("colors").select("*"),
+            supabase.from("instagram_posts").select("*"),
+          ]);
 
-          if (!pErr && pData && pData.length > 0) {
-            setProducts(pData.map(mapDbProductToProduct));
-          }
-
-          // Fetch Categories
-          const { data: cData, error: cErr } = await supabase
-            .from("categories")
-            .select("*")
-            .order("name", { ascending: true });
-
-          if (!cErr && cData && cData.length > 0) {
-            setCategories(cData.map(mapDbCategoryToCategory));
-          }
-
-          // Fetch Banners
-          const { data: bData, error: bErr } = await supabase
-            .from("banners")
-            .select("*")
-            .order("order_num", { ascending: true });
-
-          if (!bErr && bData && bData.length > 0) {
-            setBanners(bData.map(mapDbBannerToBanner));
-          }
-
-          // Fetch Orders
-          const { data: oData, error: oErr } = await supabase
-            .from("orders")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-          if (!oErr && oData && oData.length > 0) {
-            setOrders(oData.map(mapDbOrderToOrder));
-          }
-
-          // Fetch Tags
-          const { data: tData } = await supabase.from("lifestyle_tags").select("*");
+          if (!pErr && pData && pData.length > 0) setProducts(pData.map(mapDbProductToProduct));
+          if (!cErr && cData && cData.length > 0) setCategories(cData.map(mapDbCategoryToCategory));
+          if (!bErr && bData && bData.length > 0) setBanners(bData.map(mapDbBannerToBanner));
+          if (!oErr && oData && oData.length > 0) setOrders(oData.map(mapDbOrderToOrder));
           if (tData && tData.length > 0) setLifestyleTags(tData.map(mapDbTagToTag));
-
-          // Fetch Sizes
-          const { data: sData } = await supabase.from("sizes").select("*");
           if (sData && sData.length > 0) setSizes(sData.map(mapDbSizeToSize));
-
-          // Fetch Colors
-          const { data: colData } = await supabase.from("colors").select("*");
           if (colData && colData.length > 0) setColors(colData.map(mapDbColorToColor));
-
-          // Fetch Instagram Posts
-          const { data: igData } = await supabase.from("instagram_posts").select("*");
           if (igData && igData.length > 0) setInstagramPosts(igData.map(mapDbIgToIg));
         } else {
           // LocalStorage fallback
